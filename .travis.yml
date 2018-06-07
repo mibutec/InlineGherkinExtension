@@ -1,0 +1,14 @@
+language: java
+sudo: false
+script: mvn clean verify
+before_install:
+  - echo $GPG_SECRET_KEYS | base64 --decode | gpg --import
+  - echo $GPG_OWNERTRUST | gpg --import-ownertrust
+deploy:
+  -
+    provider: script
+    script: mvn clean deploy -s .travis/settings.xml -P sign,ossrh
+    skip_cleanup: true
+    on:
+      all_branches: true
+      condition: "$TRAVIS_BRANCH =~ ^(master|release).*$"
