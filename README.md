@@ -2,6 +2,7 @@
 InlineGherkin is a JUnit 5 extension allowing to write tests in a Gherkin like syntax
 
 # Examples
+Definition of a simple Scenario written in InlineGherkin
 
     @Narrative(inOrderTo="write gherkin like tests", asA="Test developer", iWantTo="use InlineGherkin")
     public class MyTest implements InlinGherkinMixin {
@@ -20,6 +21,8 @@ InlineGherkin is a JUnit 5 extension allowing to write tests in a Gherkin like s
         });
       }
     }
+
+When working with more complexe data, it may be usefull to describe this data by a table
     
     @Scenario("Some scenario containing table")
     public void scenarioContainingTable() {
@@ -28,7 +31,7 @@ InlineGherkin is a JUnit 5 extension allowing to write tests in a Gherkin like s
 		});
 		
       When("You may use a table to create structured data:"
-		  + "||Header1|Header2|Header3||"
+        + "||Header1|Header2|Header3||"
         + "| value1 |value2 |value3  |", (table) -> {
 					
               assertEquals("value1", table.getRow(0).get("Header1"));
@@ -36,13 +39,13 @@ InlineGherkin is a JUnit 5 extension allowing to write tests in a Gherkin like s
               assertEquals("value3", table.getRow(0).get("Header3"));
       });
 		
-		Then("You may use a tables to fill pojos:"
-				+ "|| SomeInt | SomeBoolean | SomeString ||"
-				+ "|  1       | true        | someString |", MyPojo.class, (table) -> {
+      Then("You may use a tables to fill pojos:"
+        + "|| SomeInt | SomeBoolean | SomeString ||"
+        + "|  1       | true        | someString |", MyPojo.class, (table) -> {
 
-					assertEquals(1, table.getRow(0).getSomeInt());
-					assertEquals(true, table.getRow(0).isSomeBoolean());
-					assertEquals("someString", table.getRow(0).getSomeString());
+              assertEquals(1, table.getRow(0).getSomeInt());
+              assertEquals(true, table.getRow(0).isSomeBoolean());
+              assertEquals("someString", table.getRow(0).getSomeString());
 		});
     }
     
