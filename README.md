@@ -46,7 +46,7 @@ When working with more complexe data, it may be usefull to describe this data by
               assertEquals(1, table.getRow(0).getSomeInt());
               assertEquals(true, table.getRow(0).isSomeBoolean());
               assertEquals("someString", table.getRow(0).getSomeString());
-		});
+      });
     }
     
 When using lambdas we have to work around limitations of final fields
