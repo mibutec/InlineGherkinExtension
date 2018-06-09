@@ -24,8 +24,6 @@ import java.lang.annotation.Target;
 
 import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.listener.XmlGherkinListener;
-import org.popper.gherkin.table.DefaultPojoMapper;
-import org.popper.gherkin.table.PojoMapper;
 
 /**
  * Annotation to configure behavior of {@link GherkinExtension}. May be used on class level to configure
@@ -40,9 +38,6 @@ public @interface GherkinConfiguration {
 	String baseDir() default "";
 	
 	Class<? extends GherkinListener>[] listeners() default {XmlGherkinListener.class};
-	
-	@SuppressWarnings("rawtypes")
-	Class<? extends PojoMapper> pojoMapper() default DefaultPojoMapper.class;
 	
 	boolean catchCompleteOutput() default false;
 }

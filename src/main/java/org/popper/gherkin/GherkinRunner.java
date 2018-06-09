@@ -24,8 +24,8 @@ import org.popper.gherkin.GherkinMixin.ActionType;
 import org.popper.gherkin.GherkinMixin.ExecutableWithExceptionAndTable;
 import org.popper.gherkin.listener.GherkinFileListener;
 import org.popper.gherkin.listener.GherkinListener;
-import org.popper.gherkin.table.PojoMapper;
 import org.popper.gherkin.table.Table;
+import org.popper.gherkin.table.TableMapper;
 
 /**
  * Main class responsible to execute step actions, do error handling and delegating events to {@link GherkinListener}s
@@ -38,16 +38,13 @@ public class GherkinRunner {
 	
 	private final File baseDir;
 	
-	private final PojoMapper<?> mapper;
-	
 	private final boolean catchCompleteOutput;
 
 	private Throwable catchedException = null;
 	
 	
-	public GherkinRunner(boolean catchCompleteOutput, PojoMapper<?> mapper, Set<GherkinListener> listeners, String baseDir) {
+	public GherkinRunner(boolean catchCompleteOutput, Set<GherkinListener> listeners, String baseDir) {
 		this.listeners = listeners;
-		this.mapper = mapper;
 		this.catchCompleteOutput = catchCompleteOutput;
 		this.baseDir = new File(baseDir);
 		this.baseDir.mkdirs();
@@ -65,14 +62,17 @@ public class GherkinRunner {
 		listeners.forEach(l -> l.scenarioStarted(getScenarioTitle(method), method));
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void executeAction(ActionType type, String step, ExecutableWithExceptionAndTable<?> action, Class<?> tableType, EventuallyConfiguration eventuall) {
+	public void executeAction(ActionType type, String step, ExecutableWithExceptionAndTable<?> action, TableMapper<?> tableMapper, EventuallyConfiguration eventuall) {
 		if (catchedException != null) {
 			listeners.forEach(l -> l.stepExecutionSkipped(step));
 		} else {
 			listeners.forEach(l -> l.stepExecutionStarts(step));
 			try {
-				runAction(action, Table.createTable(step, tableType, (PojoMapper) mapper), eventuall);
+				Table<?> table = null;
+				if (tableMapper != null) {
+					table = tableMapper.createTable(step);
+				}
+				runAction(action, table, eventuall);
 				listeners.forEach(l -> l.stepExecutionSucceed(step));
 			} catch (Throwable e) {
 				listeners.forEach(l -> l.stepExecutionFailed(step, e));

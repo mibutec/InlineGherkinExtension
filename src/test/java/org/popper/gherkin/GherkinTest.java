@@ -82,12 +82,24 @@ public class GherkinTest implements GherkinMixin {
 		
 		Then("You may use a tables to fill pojos:"
 				+ "|| SomeInt | SomeBoolean | SomeString ||"
-				+ "|  1       | true        | someString |", MyPojo.class, (table) -> {
+				+ "|  1       | true        | someString |", mapTo(MyPojo.class), (table) -> {
 
 					assertEquals(1, table.getRow(0).getSomeInt());
 					assertEquals(true, table.getRow(0).isSomeBoolean());
 					assertEquals("someString", table.getRow(0).getSomeString());
 		});
+		
+		Then("You may use name overrides to decouple Headers from Pojo field names:"
+				+ "|| my business int expression | my business boolean expression | my business string expression ||"
+				+ "|  23                         | true                           | for your interest             |", 
+				mapTo(MyPojo.class).mapHeader("my business int expression", "someInt").mapHeader("my business boolean expression", "someBoolean").mapHeader("my business string expression", "someString"),
+				(table) -> {
+
+					assertEquals(23, table.getRow(0).getSomeInt());
+					assertEquals(true, table.getRow(0).isSomeBoolean());
+					assertEquals("for your interest", table.getRow(0).getSomeString());
+		});
+
 	}
 	
 	@Scenario("Some scenario with local reference")

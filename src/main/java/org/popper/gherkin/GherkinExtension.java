@@ -34,8 +34,6 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.listener.XmlGherkinListener;
-import org.popper.gherkin.table.DefaultPojoMapper;
-import org.popper.gherkin.table.PojoMapper;
 
 /**
  * Glue class between JUnit 5 and InlineGherkin
@@ -53,8 +51,6 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
 	
 	private final boolean catchCompleteOutput;
 	
-	private final PojoMapper<?> pojoMapper;
-
 	@SuppressWarnings("unchecked")
 	public GherkinExtension() {
 		if (System.getProperty("gherkin.baseDir") == null) {
@@ -68,12 +64,6 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
 		} else {
 			listenersClasses = Arrays.stream(System.getProperty("gherkin.listeners").split(","))
 					.map(className -> uncheck(() -> ((Class<GherkinListener>) Class.forName(className)))).collect(Collectors.toSet());
-		}
-		
-		if (System.getProperty("gherkin.mapper") == null) {
-			pojoMapper = new DefaultPojoMapper<>();
-		} else {
-			pojoMapper = (PojoMapper<?>) uncheck(() -> Class.forName(System.getProperty("gherkin.listeners")).newInstance());
 		}
 		
 		if (System.getProperty("gherkin.catchCompleteOutput") == null) {
@@ -128,7 +118,7 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
 	synchronized GherkinRunner getOrCreateRunner(Class<?> testClass) {
 		GherkinRunner runner = activeRunners.get(testClass);
 		if (runner == null) {
-			runner = new GherkinRunner(catchCompleteOutput, pojoMapper, listeners(), baseDir);
+			runner = new GherkinRunner(catchCompleteOutput, listeners(), baseDir);
 			activeRunners.put(testClass, runner);
 		}
 

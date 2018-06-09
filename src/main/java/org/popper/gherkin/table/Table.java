@@ -16,14 +16,8 @@
 package org.popper.gherkin.table;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.junit.platform.commons.util.StringUtils;
 
 /**
  * Representation of a Table used in Gherkin syntax. Example:
@@ -37,8 +31,6 @@ import org.junit.platform.commons.util.StringUtils;
  * @author Michael
  */
 public class Table<T> {
-	private static final String errorMessage = "table needs to be formatter die following way: ||Header1|Header2|Header3||\n|value1|value2|value3|";
-	
 	private List<String> headers;
 	
 	private List<T> rows = new ArrayList<>();
@@ -62,58 +54,5 @@ public class Table<T> {
 	
 	public Stream<T> stream() {
 		return rows.stream();
-	}
-	
-	public static<T> Table<T> createTable(String step, Class<T> targetType, PojoMapper<T> mapper) {
-		int indexOfTable = step.indexOf("||");
-		if (indexOfTable < 0) {
-			return null;
-		}
-		
-		String tableString = step.substring(indexOfTable + 2);
-		String[] split = tableString.split("\\|\\|");
-		if (split.length != 2) {
-			throw new IllegalStateException(errorMessage);
-		}
-
-		List<String> headers = parseHeader(split[0]);
-		List<T> body = parseBody(split[1], headers, targetType, mapper);
-		
-		return new Table<T>(headers, body);
-	}
-	
-	private static List<String> parseHeader(String header) {
-		return Arrays.stream(header.split("\\|")).map(String::trim).collect(Collectors.toList());
-	}
-	
-	private static<T> List<T> parseBody(String body, List<String> headers, Class<T> targetType, PojoMapper<T> mapper) {
-		body = body.replaceAll("\\|+", "|");
-		String[] split = body.split("\\|");
-		
-		List<String> values = Arrays.stream(split).map(String::trim).filter(StringUtils::isNotBlank).collect(Collectors.toList());
-		
-		if (values.size() % headers.size() != 0) {
-			throw new IllegalStateException(errorMessage);
-		}
-		
-		List<T> ret = new ArrayList<>();
-		Map<String, String> actualMap = new HashMap<>();
-		
-		int cnt = 0;
-		for (String value : values) {
-			int index = cnt % headers.size();
-			actualMap.put(headers.get(index), value);
-			if (index == headers.size() - 1) {
-				if (targetType != Map.class) {
-					ret.add(mapper.mapToPojo(actualMap, targetType));
-				} else {
-					ret.add(targetType.cast(actualMap));
-				}
-				actualMap = new HashMap<>();
-			}
-			cnt++;
-		}
-		
-		return ret;
 	}
 }

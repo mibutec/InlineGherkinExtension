@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.popper.gherkin.table.Table;
+import org.popper.gherkin.table.TableMapper;
 
 /**
  * Mixin to be added to a test providing the syntax methods to be used when writing tests
@@ -36,48 +37,52 @@ public interface GherkinMixin {
 		GherkinExtension.getRunner(getClass()).executeAction(GIVEN, step, (table) -> action.run(), null, null);
 	}
 	
-	default<T> void Given(String step, Class<T> tableType, ExecutableWithExceptionAndTable<T> action) {
-		GherkinExtension.getRunner(getClass()).executeAction(GIVEN, step, action, tableType, null);
+	default<T> void Given(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action) {
+		GherkinExtension.getRunner(getClass()).executeAction(GIVEN, step, action, tableMapper, null);
 	}
 	
 	default void Given(String step, ExecutableWithExceptionAndTable<Map<String, String>> action) {
-		GherkinExtension.getRunner(getClass()).executeAction(GIVEN, step, action, Map.class, null);
+		GherkinExtension.getRunner(getClass()).executeAction(GIVEN, step, action, mapTo(Map.class), null);
 	}
 	
 	default void When(String step, ExecutableWithException action) {
 		GherkinExtension.getRunner(getClass()).executeAction(WHEN, step, (table) -> action.run(), null, null);
 	}
 	
-	default<T> void When(String step, Class<T> tableType, ExecutableWithExceptionAndTable<T> action) {
-		GherkinExtension.getRunner(getClass()).executeAction(WHEN, step, action, tableType, null);
+	default<T> void When(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action) {
+		GherkinExtension.getRunner(getClass()).executeAction(WHEN, step, action, tableMapper, null);
 	}
 	
 	default void When(String step, ExecutableWithExceptionAndTable<Map<String, String>> action) {
-		GherkinExtension.getRunner(getClass()).executeAction(WHEN, step, action, Map.class, null);
+		GherkinExtension.getRunner(getClass()).executeAction(WHEN, step, action, mapTo(Map.class), null);
 	}
 	
 	default void Then(String step, ExecutableWithException action) {
 		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, (table) -> action.run(), null, null);
 	}
 	
-	default<T> void Then(String step, Class<T> tableType, ExecutableWithExceptionAndTable<T> action) {
-		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, action, tableType, null);
+	default<T> void Then(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action) {
+		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, action, tableMapper, null);
 	}
 	
 	default void Then(String step, ExecutableWithExceptionAndTable<Map<String, String>> action) {
-		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, action, Map.class, null);
+		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, action, mapTo(Map.class), null);
 	}
 	
 	default void Then(String step, ExecutableWithException action, EventuallyConfiguration eventuelly) {
 		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, (table) -> action.run(), null, eventuelly);
 	}
 	
-	default<T> void Then(String step, Class<T> tableType, ExecutableWithExceptionAndTable<T> action, EventuallyConfiguration eventuelly) {
-		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, action, tableType, eventuelly);
+	default<T> void Then(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action, EventuallyConfiguration eventuelly) {
+		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, action, tableMapper, eventuelly);
 	}
 	
 	default void Then(String step, ExecutableWithExceptionAndTable<Map<String, String>> action, EventuallyConfiguration eventuelly) {
-		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, action, Map.class, eventuelly);
+		GherkinExtension.getRunner(getClass()).executeAction(THEN, step, action, mapTo(Map.class), eventuelly);
+	}
+	
+	default<T> TableMapper<T> mapTo(Class<T> targetType) {
+		return new TableMapper<>(targetType);
 	}
 	
 	default EventuallyConfiguration eventually() {
