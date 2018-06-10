@@ -7,6 +7,29 @@
 	<artifactId>gherkin</artifactId>
 	<version>0.2-SNAPSHOT</version>
 
+	<name>Inline Gherkin Extension</name>
+	<description>Inline Gherkin Extension for JUnit 5</description>
+	<url>https://github.com/mibutec/InlineGherkinExtension</url>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Michael Bulla</name>
+			<email>michaelbulla@gmail.com</email>
+		</developer>
+	</developers>
+	<scm>
+		<url>https://github.com/mibutec/InlineGherkinExtension</url>
+		<connection>scm:git:git://github.com:mibutec/InlineGherkinExtension.git</connection>
+	</scm>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
