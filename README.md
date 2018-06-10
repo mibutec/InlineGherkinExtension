@@ -16,7 +16,7 @@ Definition of a simple Scenario written in InlineGherkin
           // some code	
         });
 
-        Then("Some assertion succeeds", () -> {
+        Then("Some assertion", () -> {
           // some code
         });
       }
