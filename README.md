@@ -85,7 +85,7 @@ InlineGherkin comes with direct support to check eventual consistent states
 
 # Getting started
 
-When you want to use popperfw for webpages use the following Maven dependency
+When you want to use Inline Gherkin Extension add the following Maven dependency to your pom.xml
 
     <dependency>
       <groupId>org.popperfw</groupId>
