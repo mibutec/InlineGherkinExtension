@@ -88,7 +88,7 @@ InlineGherkin comes with direct support to check eventual consistent states
 When you want to use popperfw for webpages use the following Maven dependency
 
     <dependency>
-      <groupId>in progress</groupId>
-      <artifactId>in progress</artifactId>
-      <version>in progress</version>
+      <groupId>org.popperfw</groupId>
+      <artifactId>gherkin</artifactId>
+      <version>0.1</version>
     </dependency>
