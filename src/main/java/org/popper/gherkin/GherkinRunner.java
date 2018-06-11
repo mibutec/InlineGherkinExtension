@@ -19,6 +19,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.popper.gherkin.GherkinMixin.ActionType;
 import org.popper.gherkin.GherkinMixin.ExecutableWithExceptionAndTable;
@@ -40,8 +41,7 @@ public class GherkinRunner {
 	
 	private final boolean catchCompleteOutput;
 
-	private Throwable catchedException = null;
-	
+	private Throwable caughtException = null;
 	
 	public GherkinRunner(boolean catchCompleteOutput, Set<GherkinListener> listeners, String baseDir) {
 		this.listeners = listeners;
@@ -51,7 +51,7 @@ public class GherkinRunner {
 	}
 	
 	public void startClass(Class<?> storyClass) {
-		listeners.forEach(l -> l.storyStarted(storyClass));
+		fireEvent(l -> l.storyStarted(storyClass));
 		Narrative narrative = storyClass.getAnnotation(Narrative.class);
 		if (narrative != null) {
 			listeners.forEach(l -> l.narrative(narrative));
@@ -59,28 +59,59 @@ public class GherkinRunner {
 	}
 	
 	public void startMethod(Method method) {
-		listeners.forEach(l -> l.scenarioStarted(getScenarioTitle(method), method));
+		fireEvent(l -> l.scenarioStarted(getScenarioTitle(method), method));
 	}
 	
 	public void executeAction(ActionType type, String step, ExecutableWithExceptionAndTable<?> action, TableMapper<?> tableMapper, EventuallyConfiguration eventuall) {
-		if (catchedException != null) {
-			listeners.forEach(l -> l.stepExecutionSkipped(step));
+		if (caughtException != null) {
+			fireEvent(l -> l.stepExecutionSkipped(step));
 		} else {
-			listeners.forEach(l -> l.stepExecutionStarts(step));
+			fireEvent(l -> l.stepExecutionStarts(step));
 			try {
 				Table<?> table = null;
 				if (tableMapper != null) {
 					table = tableMapper.createTable(step);
 				}
 				runAction(action, table, eventuall);
-				listeners.forEach(l -> l.stepExecutionSucceed(step));
+				fireEvent(l -> l.stepExecutionSucceed(step));
 			} catch (Throwable e) {
-				listeners.forEach(l -> l.stepExecutionFailed(step, e));
-				catchedException = e;
+				fireEvent(l -> l.stepExecutionFailed(step, e));
+				caughtException = e;
 				if (!catchCompleteOutput) {
 					throw new StepFailedException(step, e);
 				}
 			}
+		}
+	}
+	
+	public void endMethod(Method method, Optional<Throwable> throwable) {
+		if (caughtException != null) {
+			fireEvent(l -> l.scenarioFailed(getScenarioTitle(method), method, caughtException));
+			caughtException = null;
+		} else {
+			fireEvent(l -> l.scenarioSucceed(getScenarioTitle(method), method));
+		}
+	}
+	
+	public void endClass(Class<?> storyClass) {
+		fireEvent(l -> l.storyFinished(storyClass));
+		fireEvent(l -> {
+			if (l instanceof GherkinFileListener) {
+				((GherkinFileListener) l).toFile(baseDir);
+			}
+		});
+	}
+	
+	private void fireEvent(Consumer<GherkinListener> consumer) {
+		listeners.forEach(consumer);
+	}
+	
+	private String getScenarioTitle(Method method) {
+		Scenario scenario = method.getAnnotation(Scenario.class);
+		if (scenario != null) {
+			return scenario.value();
+		} else {
+			return method.getName();
 		}
 	}
 	
@@ -98,29 +129,6 @@ public class GherkinRunner {
 					Thread.sleep(eventually.getIntervalInMs());
 				}
 			}
-		}
-	}
-	
-	public void endMethod(Method method, Optional<Throwable> throwable) {
-		if (catchedException != null) {
-			listeners.forEach(l -> l.scenarioFailed(getScenarioTitle(method), method, catchedException));
-			catchedException = null;
-		} else {
-			listeners.forEach(l -> l.scenarioSucceed(getScenarioTitle(method), method));
-		}
-	}
-	
-	public void endClass(Class<?> storyClass) {
-		listeners.forEach(l -> l.storyFinished(storyClass));
-		listeners.stream().filter(l -> l instanceof GherkinFileListener).map(l -> {return (GherkinFileListener) l;}).forEach(l -> l.toFile(baseDir));
-	}
-	
-	private String getScenarioTitle(Method method) {
-		Scenario scenario = method.getAnnotation(Scenario.class);
-		if (scenario != null) {
-			return scenario.value();
-		} else {
-			return method.getName();
 		}
 	}
 }
