@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -25,34 +25,38 @@ import java.util.stream.Stream;
  * || Header 1 | Header 2 | Header 3 |
  * | val 1     | val 2    | val 3    |
  * | val 4     | val 5    | val 6    |
- * 
+ *
  * The Table may be mapped to a List<Map> structure or List<SomePojo>
- * 
+ *
  * @author Michael
  */
 public class Table<T> {
-	private List<String> headers;
-	
-	private List<T> rows = new ArrayList<>();
-	
-	public Table(List<String> headers, List<T> rows) {
-		this.headers = headers;
-		this.rows = rows;
-	}
-	
-	public List<String> getHeaders() {
-		return headers;
-	}
-	
-	public int size() {
-		return rows.size();
-	}
-	
-	public T getRow(int row) {
-		return rows.get(row);
-	}
-	
-	public Stream<T> stream() {
-		return rows.stream();
-	}
+    private List<String> headers;
+
+    private List<T> rows = new ArrayList<>();
+
+    public Table(List<String> headers, List<T> rows) {
+        this.headers = headers;
+        this.rows = rows;
+    }
+
+    public List<String> getHeaders() {
+        return headers;
+    }
+
+    public int size() {
+        return rows.size();
+    }
+
+    public T getRow(int row) {
+        return rows.get(row);
+    }
+
+    public List<T> getRows() {
+        return rows;
+    }
+
+    public Stream<T> stream() {
+        return rows.stream();
+    }
 }
