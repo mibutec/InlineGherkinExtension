@@ -31,7 +31,6 @@ import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
-import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.listener.XmlGherkinListener;
@@ -42,8 +41,7 @@ import org.popper.gherkin.listener.XmlGherkinListener;
  * @author Michael
  *
  */
-public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, AfterAllCallback,
-        TestExecutionExceptionHandler, ParameterResolver {
+public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, AfterAllCallback, ParameterResolver {
     private static final Map<Class<?>, GherkinRunner> activeRunners = new ConcurrentHashMap<>();
 
     private static final Namespace GherkinNamespace = Namespace.create(GherkinExtension.class);
@@ -67,15 +65,6 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
         getOrCreateRunner(context.getRequiredTestClass()).endClass(context.getRequiredTestClass());
-    }
-
-    @Override
-    public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
-        if (throwable instanceof StepFailedException) {
-            throw throwable.getCause();
-        }
-
-        throw throwable;
     }
 
     @Override

@@ -29,8 +29,6 @@ import java.util.stream.Collectors;
  *
  */
 public class TableMapper<T> {
-    private static final String errorMessage = "table needs to be formatter die following way: |Header1|Header2|Header3|\n|value1|value2|value3|";
-
     private static final PojoMapper<?> DefaultPojoMapper = new DefaultPojoMapper<>();
 
     private Class<T> targetType;
@@ -100,18 +98,23 @@ public class TableMapper<T> {
         String tableString = step.substring(step.indexOf('|') + 1);
         String[] rows = tableString.split("\\|\\|");
         if (rows.length < 2) {
-            throw new IllegalStateException(errorMessage);
+            throw createError(tableString);
         }
 
         List<String> headers = parseHeader(rows[0]);
 
         List<Map<String, String>> body = new ArrayList<>();
         for (int i = 1; i < rows.length; i++) {
-            body.add(parseBody(rows[i], headers, getTargetType(), getPojoMapper()));
+            body.add(parseBody(rows[i], headers, getTargetType(), getPojoMapper(), tableString));
         }
 
         return new Table<>(headers, body);
+    }
 
+    private IllegalStateException createError(String tableString) {
+        String exceptionText = "Table needs to be formatter die following way:\n|Header1|Header2|Header3|\n|value1|value2|value3|\n, but was\n"
+                + tableString;
+        return new IllegalStateException(exceptionText);
     }
 
     protected List<String> parseHeader(String header) {
@@ -119,12 +122,12 @@ public class TableMapper<T> {
     }
 
     protected Map<String, String> parseBody(String bodyRow, List<String> headers, Class<T> targetType,
-            PojoMapper<T> mapper) {
+            PojoMapper<T> mapper, String tableString) {
         String[] split = bodyRow.split("\\|");
         List<String> values = Arrays.stream(split).map(String::trim).collect(Collectors.toList());
 
         if (values.size() != headers.size()) {
-            throw new IllegalStateException(errorMessage);
+            throw createError(tableString);
         }
 
         Map<String, String> actualMap = new HashMap<>();

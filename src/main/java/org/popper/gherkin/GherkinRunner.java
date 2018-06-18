@@ -42,7 +42,7 @@ public class GherkinRunner {
 
     private final boolean catchCompleteOutput;
 
-    private Throwable caughtException = null;
+    private Throwable caughtFailure = null;
 
     public GherkinRunner(boolean catchCompleteOutput, Set<GherkinListener> listeners, String baseDir) {
         this.listeners = listeners;
@@ -64,8 +64,8 @@ public class GherkinRunner {
         fireEvent(l -> l.scenarioStarted(getScenarioTitle(method), method));
     }
 
-    public void executeAction(String type, String step, ExecutableWithExceptionAndTable<?> action,
-            TableMapper<?> tableMapper, EventuallyConfiguration eventuall) {
+    public <E extends Exception> void executeAction(String type, String step, ExecutableWithExceptionAndTable<?> action,
+            TableMapper<?> tableMapper, EventuallyConfiguration eventuall) throws E {
         Optional<Table<Map<String, String>>> table;
         String stepWithoutTable;
         if (tableMapper != null) {
@@ -76,30 +76,46 @@ public class GherkinRunner {
             stepWithoutTable = step;
         }
 
-        if (caughtException != null) {
+        if (caughtFailure != null) {
             fireEvent(l -> l.stepExecutionSkipped(type, stepWithoutTable, table));
         } else {
             fireEvent(l -> l.stepExecutionStarts(type, stepWithoutTable, table));
             try {
                 Table<?> convertedTable = tableMapper != null ? tableMapper.createTable(step) : null;
-                runAction(action, convertedTable, eventuall);
+                //                runAction(action, convertedTable, eventuall);
                 fireEvent(l -> l.stepExecutionSucceed(type, stepWithoutTable, table));
-            } catch (Throwable e) {
-                fireEvent(l -> l.stepExecutionFailed(type, stepWithoutTable, table, e));
-                caughtException = e;
+            } catch (Throwable th) {
+                fireEvent(l -> l.stepExecutionFailed(type, stepWithoutTable, table, th));
+                caughtFailure = th;
                 if (!catchCompleteOutput) {
-                    throw new StepFailedException(step, e);
+                    throw handleError(th);
                 }
             }
         }
     }
 
-    public void endMethod(Method method, Optional<Throwable> throwable) {
-        if (caughtException != null) {
-            fireEvent(l -> l.scenarioFailed(getScenarioTitle(method), method, caughtException));
-            caughtException = null;
+    public void endMethod(Method method, Optional<Throwable> throwable) throws Exception {
+        if (caughtFailure != null) {
+            fireEvent(l -> l.scenarioFailed(getScenarioTitle(method), method, caughtFailure));
+            Throwable th = caughtFailure;
+            caughtFailure = null;
+
+            if (catchCompleteOutput) {
+                throw handleError(th);
+            }
+
         } else {
             fireEvent(l -> l.scenarioSucceed(getScenarioTitle(method), method));
+        }
+    }
+
+    private <E extends Exception> E handleError(Throwable th) throws E {
+        if (th instanceof Error) {
+            throw (Error) th;
+        } else if (th instanceof Exception) {
+            throw (E) th;
+        } else {
+            throw new UnhandledExceptionTypeExsception(th);
         }
     }
 
@@ -140,6 +156,12 @@ public class GherkinRunner {
                     Thread.sleep(eventually.getIntervalInMs());
                 }
             }
+        }
+    }
+
+    public static class UnhandledExceptionTypeExsception extends RuntimeException {
+        UnhandledExceptionTypeExsception(Throwable cause) {
+            super(cause);
         }
     }
 }

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @Narrative(inOrderTo = "write gherkin like tests", asA = "Test developer", iWantTo = "use InlineGherkin")
-@GherkinConfiguration
+@GherkinConfiguration(catchCompleteOutput = true)
 public class GherkinTest implements GherkinMixin {
     @Test
     @Scenario("Some succeeding scenario")
@@ -54,7 +54,7 @@ public class GherkinTest implements GherkinMixin {
         });
 
         When("Some when condition", () -> {
-            throw new RuntimeException("TestException");
+            throw new Exception("TestException");
         });
 
         Then("Some assertion fails", () -> {
