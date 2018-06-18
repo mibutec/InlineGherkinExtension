@@ -23,6 +23,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.popper.gherkin.GherkinRunner.DefaultRunnerFactory;
 import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.listener.XmlGherkinListener;
 
@@ -42,4 +43,6 @@ public @interface GherkinConfiguration {
     Class<? extends GherkinListener>[] listeners() default {XmlGherkinListener.class};
 
     boolean catchCompleteOutput() default false;
+
+    Class<? extends RunnerFactory> runnerFactory() default DefaultRunnerFactory.class;
 }

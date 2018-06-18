@@ -64,8 +64,8 @@ public class GherkinRunner {
         fireEvent(l -> l.scenarioStarted(getScenarioTitle(method), method));
     }
 
-    public <E extends Exception> void executeAction(String type, String step, ExecutableWithExceptionAndTable<?> action,
-            TableMapper<?> tableMapper, EventuallyConfiguration eventuall) throws E {
+    public void executeAction(String type, String step, ExecutableWithExceptionAndTable<?> action,
+            TableMapper<?> tableMapper, EventuallyConfiguration eventuall) {
         Optional<Table<Map<String, String>>> table;
         String stepWithoutTable;
         if (tableMapper != null) {
@@ -82,13 +82,13 @@ public class GherkinRunner {
             fireEvent(l -> l.stepExecutionStarts(type, stepWithoutTable, table));
             try {
                 Table<?> convertedTable = tableMapper != null ? tableMapper.createTable(step) : null;
-                //                runAction(action, convertedTable, eventuall);
+                runAction(action, convertedTable, eventuall);
                 fireEvent(l -> l.stepExecutionSucceed(type, stepWithoutTable, table));
             } catch (Throwable th) {
                 fireEvent(l -> l.stepExecutionFailed(type, stepWithoutTable, table, th));
                 caughtFailure = th;
                 if (!catchCompleteOutput) {
-                    throw handleError(th);
+                    throw this.<RuntimeException> handleError(th);
                 }
             }
         }
@@ -109,13 +109,14 @@ public class GherkinRunner {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <E extends Exception> E handleError(Throwable th) throws E {
         if (th instanceof Error) {
             throw (Error) th;
-        } else if (th instanceof Exception) {
-            throw (E) th;
+        } else if (th instanceof RuntimeException) {
+            throw (RuntimeException) th;
         } else {
-            throw new UnhandledExceptionTypeExsception(th);
+            throw (E) th;
         }
     }
 
@@ -162,6 +163,14 @@ public class GherkinRunner {
     public static class UnhandledExceptionTypeExsception extends RuntimeException {
         UnhandledExceptionTypeExsception(Throwable cause) {
             super(cause);
+        }
+    }
+
+    public static class DefaultRunnerFactory implements RunnerFactory {
+        @Override
+        public GherkinRunner createRunner(ExtensionContext context, boolean catchCompleteOutput,
+                Set<GherkinListener> listeners, String baseDir) {
+            return new GherkinRunner(catchCompleteOutput, listeners, baseDir);
         }
     }
 }

@@ -79,8 +79,8 @@ public interface GherkinMixin {
         callRunner("Then", step, action, mapTo(Map.class), eventuelly);
     }
 
-    default <E extends Exception> void callRunner(String type, String step, ExecutableWithExceptionAndTable<?> action,
-            TableMapper<?> tableMapper, EventuallyConfiguration eventually) throws E {
+    default void callRunner(String type, String step, ExecutableWithExceptionAndTable<?> action,
+            TableMapper<?> tableMapper, EventuallyConfiguration eventually) {
         GherkinExtension.getRunner(getClass()).executeAction(type, step, action, tableMapper, eventually);
     }
 

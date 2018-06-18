@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.platform.commons.util.AnnotationUtils;
+import org.popper.gherkin.GherkinRunner.DefaultRunnerFactory;
 import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.listener.XmlGherkinListener;
 
@@ -50,21 +51,20 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
     public void beforeEach(ExtensionContext context) throws Exception {
         // we want context already to contain testInstance, so we don't use BeforeAll to call startClass, but this workaround
         if (context.getParent().get().getStore(GherkinNamespace).get("beforeClassAlreadyCalled") == null) {
-            getOrCreateRunner(context.getRequiredTestClass()).startClass(context);
+            getOrCreateRunner(context).startClass(context);
             context.getParent().get().getStore(GherkinNamespace).put("beforeClassAlreadyCalled", true);
         }
-        getOrCreateRunner(context.getRequiredTestClass()).startMethod(context.getRequiredTestMethod());
+        getOrCreateRunner(context).startMethod(context.getRequiredTestMethod());
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        getOrCreateRunner(context.getRequiredTestClass()).endMethod(context.getRequiredTestMethod(),
-                context.getExecutionException());
+        getOrCreateRunner(context).endMethod(context.getRequiredTestMethod(), context.getExecutionException());
     }
 
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
-        getOrCreateRunner(context.getRequiredTestClass()).endClass(context.getRequiredTestClass());
+        getOrCreateRunner(context).endClass(context.getRequiredTestClass());
     }
 
     @Override
@@ -79,13 +79,14 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
         return new LocalReference<>();
     }
 
-    synchronized GherkinRunner getOrCreateRunner(Class<?> testClass) {
+    synchronized GherkinRunner getOrCreateRunner(ExtensionContext context) {
+        Class<?> testClass = context.getRequiredTestClass();
         GherkinRunner runner = activeRunners.get(testClass);
         if (runner == null) {
             GherkinConfiguration configAnnotation = AnnotationUtils
                     .findAnnotation(testClass, GherkinConfiguration.class).orElse(null);
-            runner = new GherkinRunner(catchCompleteOutput(configAnnotation), listeners(configAnnotation),
-                    baseDir(configAnnotation));
+            runner = runnerFactory(configAnnotation).createRunner(context, catchCompleteOutput(configAnnotation),
+                    listeners(configAnnotation), baseDir(configAnnotation));
             activeRunners.put(testClass, runner);
         }
 
@@ -109,6 +110,20 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
             return configAnnotation.catchCompleteOutput();
         } else {
             return false;
+        }
+    }
+
+    private RunnerFactory runnerFactory(GherkinConfiguration configAnnotation) {
+        try {
+            if (System.getProperty("gherkin.runnerFactory") != null) {
+                return (RunnerFactory) Class.forName(System.getProperty("gherkin.runnerFactory")).newInstance();
+            } else if (configAnnotation != null) {
+                return configAnnotation.runnerFactory().newInstance();
+            } else {
+                return new DefaultRunnerFactory();
+            }
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            throw new IllegalStateException(e);
         }
     }
 
