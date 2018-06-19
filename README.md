@@ -90,5 +90,5 @@ When you want to use Inline Gherkin Extension add the following Maven dependency
     <dependency>
       <groupId>org.popperfw</groupId>
       <artifactId>gherkin</artifactId>
-      <version>0.1</version>
+      <version>0.3</version>
     </dependency>
