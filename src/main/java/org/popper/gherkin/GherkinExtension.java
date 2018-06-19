@@ -47,12 +47,14 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
 
     private static final Namespace GherkinNamespace = Namespace.create(GherkinExtension.class);
 
+    private static final String BEFORE_CLASS_ALREADY_CALLES = "bcac";
+
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
         // we want context already to contain testInstance, so we don't use BeforeAll to call startClass, but this workaround
-        if (context.getParent().get().getStore(GherkinNamespace).get("beforeClassAlreadyCalled") == null) {
+        if (context.getParent().get().getStore(GherkinNamespace).get(BEFORE_CLASS_ALREADY_CALLES) == null) {
             getOrCreateRunner(context).startClass(context);
-            context.getParent().get().getStore(GherkinNamespace).put("beforeClassAlreadyCalled", true);
+            context.getParent().get().getStore(GherkinNamespace).put(BEFORE_CLASS_ALREADY_CALLES, true);
         }
         getOrCreateRunner(context).startMethod(context.getRequiredTestMethod());
     }
@@ -64,6 +66,12 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
 
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
+        // if no tests were running, no initilization has taken place, so we need to initialize before closing
+        if (context.getParent().get().getStore(GherkinNamespace).get(BEFORE_CLASS_ALREADY_CALLES) == null) {
+            getOrCreateRunner(context).startClass(context);
+            context.getParent().get().getStore(GherkinNamespace).put(BEFORE_CLASS_ALREADY_CALLES, true);
+        }
+
         getOrCreateRunner(context).endClass(context.getRequiredTestClass());
     }
 
