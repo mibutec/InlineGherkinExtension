@@ -52,7 +52,6 @@ public class GherkinRunner {
     }
 
     public void startClass(ExtensionContext context) {
-        fireEvent(l -> l.init(context));
         fireEvent(l -> l.storyStarted(context.getRequiredTestClass()));
         Narrative narrative = context.getRequiredTestClass().getAnnotation(Narrative.class);
         if (narrative != null) {
@@ -60,8 +59,8 @@ public class GherkinRunner {
         }
     }
 
-    public void startMethod(Method method) {
-        fireEvent(l -> l.scenarioStarted(getScenarioTitle(method), method));
+    public void startMethod(Object testInstance, Method method) {
+        fireEvent(l -> l.scenarioStarted(getScenarioTitle(testInstance, method), method));
     }
 
     public void executeAction(String type, String step, ExecutableWithExceptionAndTable<?> action,
@@ -94,9 +93,9 @@ public class GherkinRunner {
         }
     }
 
-    public void endMethod(Method method, Optional<Throwable> throwable) throws Exception {
+    public void endMethod(Object testInstance, Method method, Optional<Throwable> throwable) throws Exception {
         if (caughtFailure != null) {
-            fireEvent(l -> l.scenarioFailed(getScenarioTitle(method), method, caughtFailure));
+            fireEvent(l -> l.scenarioFailed(getScenarioTitle(testInstance, method), method, caughtFailure));
             Throwable th = caughtFailure;
             caughtFailure = null;
 
@@ -105,7 +104,7 @@ public class GherkinRunner {
             }
 
         } else {
-            fireEvent(l -> l.scenarioSucceed(getScenarioTitle(method), method));
+            fireEvent(l -> l.scenarioSucceed(getScenarioTitle(testInstance, method), method));
         }
     }
 
@@ -133,7 +132,7 @@ public class GherkinRunner {
         listeners.forEach(consumer);
     }
 
-    protected String getScenarioTitle(Method method) {
+    public String getScenarioTitle(Object testInstance, Method method) {
         Scenario scenario = method.getAnnotation(Scenario.class);
         if (scenario != null) {
             return scenario.value();

@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
@@ -42,36 +42,28 @@ import org.popper.gherkin.listener.XmlGherkinListener;
  * @author Michael
  *
  */
-public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, AfterAllCallback, ParameterResolver {
+public class GherkinExtension
+        implements BeforeEachCallback, AfterEachCallback, BeforeAllCallback, AfterAllCallback, ParameterResolver {
     private static final Map<Class<?>, GherkinRunner> activeRunners = new ConcurrentHashMap<>();
 
-    private static final Namespace GherkinNamespace = Namespace.create(GherkinExtension.class);
-
-    private static final String BEFORE_CLASS_ALREADY_CALLES = "bcac";
+    @Override
+    public void beforeAll(ExtensionContext context) throws Exception {
+        getOrCreateRunner(context).startClass(context);
+    }
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        // we want context already to contain testInstance, so we don't use BeforeAll to call startClass, but this workaround
-        if (context.getParent().get().getStore(GherkinNamespace).get(BEFORE_CLASS_ALREADY_CALLES) == null) {
-            getOrCreateRunner(context).startClass(context);
-            context.getParent().get().getStore(GherkinNamespace).put(BEFORE_CLASS_ALREADY_CALLES, true);
-        }
-        getOrCreateRunner(context).startMethod(context.getRequiredTestMethod());
+        getOrCreateRunner(context).startMethod(context.getRequiredTestInstance(), context.getRequiredTestMethod());
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        getOrCreateRunner(context).endMethod(context.getRequiredTestMethod(), context.getExecutionException());
+        getOrCreateRunner(context).endMethod(context.getRequiredTestInstance(), context.getRequiredTestMethod(),
+                context.getExecutionException());
     }
 
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
-        // if no tests were running, no initilization has taken place, so we need to initialize before closing
-        if (context.getParent().get().getStore(GherkinNamespace).get(BEFORE_CLASS_ALREADY_CALLES) == null) {
-            getOrCreateRunner(context).startClass(context);
-            context.getParent().get().getStore(GherkinNamespace).put(BEFORE_CLASS_ALREADY_CALLES, true);
-        }
-
         getOrCreateRunner(context).endClass(context.getRequiredTestClass());
     }
 
@@ -151,7 +143,7 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
         return listenerClasses.stream().map(c -> uncheck(() -> c.newInstance())).collect(Collectors.toSet());
     }
 
-    synchronized static GherkinRunner getRunner(Class<?> testClass) {
+    public synchronized static GherkinRunner getRunner(Class<?> testClass) {
         GherkinRunner runner = activeRunners.get(testClass);
         if (runner == null) {
             throw new IllegalStateException("no runner configured for: " + testClass.getSimpleName());

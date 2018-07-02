@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.popperfw</groupId>
 	<artifactId>gherkin</artifactId>
-	<version>0.4-SNAPSHOT</version>
+	<version>0.5.rc2</version>
 
 	<name>Inline Gherkin Extension</name>
 	<description>Inline Gherkin Extension for JUnit 5</description>
@@ -139,7 +139,15 @@
 			</build>
 		</profile>
 	</profiles>
-
+	
+	<distributionManagement>
+        <repository>
+            <id>releases</id>
+            <url>http://pasxnexus.werum.net/nexus/content/repositories/releases</url>
+        </repository>
+    </distributionManagement>
+	
+<!-- 
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
@@ -152,5 +160,5 @@
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
-
+-->
 </project>
