@@ -17,6 +17,7 @@ package org.popper.gherkin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Random;
 
@@ -136,6 +137,16 @@ public class GherkinTest implements GherkinMixin {
 
         Then("Eventually clause will take care to wait for the result", () -> {
             assertTrue(System.currentTimeMillis() > (startTime.value + waitTime.value));
+        }, eventually());
+    }
+
+    @Test
+    @Scenario("Eventually clause may also fail")
+    @DisplayName("Eventually clause may also fail")
+    @Disabled
+    public void scenarioWithEventuellyClauseFails() {
+        Then("Eventually clause will take care to wait for the result", () -> {
+            fail("test error");
         }, eventually());
     }
 

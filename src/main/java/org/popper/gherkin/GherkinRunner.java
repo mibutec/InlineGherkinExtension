@@ -143,7 +143,8 @@ public class GherkinRunner {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected void runAction(ExecutableWithExceptionAndTable<?> action, Table table, EventuallyConfiguration eventually)
-            throws Exception {
+            throws Throwable {
+        Throwable throwableFromStep = null;
         if (eventually == null) {
             action.run(table);
         } else {
@@ -151,16 +152,22 @@ public class GherkinRunner {
             while ((System.currentTimeMillis() - eventually.getTimeoutInMs()) < start) {
                 try {
                     action.run(table);
+                    throwableFromStep = null;
                     break;
                 } catch (Throwable th) {
+                    throwableFromStep = th;
                     Thread.sleep(eventually.getIntervalInMs());
                 }
+            }
+
+            if (throwableFromStep != null) {
+                throw throwableFromStep;
             }
         }
     }
 
-    public static class UnhandledExceptionTypeExsception extends RuntimeException {
-        UnhandledExceptionTypeExsception(Throwable cause) {
+    public static class UnhandledExceptionTypeException extends RuntimeException {
+        UnhandledExceptionTypeException(Throwable cause) {
             super(cause);
         }
     }
