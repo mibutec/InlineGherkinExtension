@@ -141,14 +141,6 @@
 	</profiles>
 	
 	<distributionManagement>
-        <repository>
-            <id>releases</id>
-            <url>http://pasxnexus.werum.net/nexus/content/repositories/releases</url>
-        </repository>
-    </distributionManagement>
-	
-<!-- 
-	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
 			<name>Nexus Snapshot Repository</name>
@@ -160,5 +152,4 @@
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
--->
 </project>
