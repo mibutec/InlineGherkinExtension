@@ -15,7 +15,6 @@
  */
 package org.popper.gherkin.table;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,25 +29,21 @@ import java.util.Map.Entry;
 public class DefaultPojoMapper<T> implements PojoMapper<T> {
 
     @Override
-    public T mapToPojo(Map<String, String> map, Class<T> targetType) {
+    public T mapToPojo(Map<String, String> map, T target) {
         try {
-            Constructor<T> constructor = targetType.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            T ret = constructor.newInstance();
-
             for (Entry<String, String> entry : map.entrySet()) {
-                if (!setFieldBySetter(ret, entry.getKey(), entry.getValue())) {
-                    if (!setField(ret, entry.getKey(), entry.getValue())) {
+                if (!setFieldBySetter(target, entry.getKey(), entry.getValue())) {
+                    if (!setField(target, entry.getKey(), entry.getValue())) {
                         throw new IllegalStateException("couldn't find any field or setter named " + entry.getKey()
-                                + " in " + targetType.getSimpleName());
+                                + " in " + target.getClass().getSimpleName());
                     }
                 }
             }
 
-            return ret;
-        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+            return target;
+        } catch (SecurityException | IllegalAccessException
                 | IllegalArgumentException | InvocationTargetException e) {
-            throw new IllegalStateException("could not map " + map + " to " + targetType.getSimpleName(), e);
+            throw new IllegalStateException("could not map " + map + " to " + target.getClass().getSimpleName(), e);
         }
     }
 

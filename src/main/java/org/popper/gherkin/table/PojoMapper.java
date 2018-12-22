@@ -23,5 +23,5 @@ import java.util.Map;
  * @author Michael
  */
 public interface PojoMapper<T> {
-	T mapToPojo(Map<String, String> map, Class<T> targetType);
+	T mapToPojo(Map<String, String> map, T targetType);
 }

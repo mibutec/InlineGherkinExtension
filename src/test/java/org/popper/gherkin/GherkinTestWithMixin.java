@@ -39,7 +39,6 @@ public class GherkinTestWithMixin implements Gherkin {
         When("Some when condition", () -> {
 
         });
-
         Then("Some assertion succeeds", () -> {
 
         });
