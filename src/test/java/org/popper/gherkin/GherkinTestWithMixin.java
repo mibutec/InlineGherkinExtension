@@ -24,25 +24,23 @@ import java.util.Random;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @Narrative(inOrderTo = "write gherkin like tests", asA = "Test developer", iWantTo = "use InlineGherkin")
-@ExtendWith(GherkinExtension.class)
 @GherkinConfiguration(catchCompleteOutput = true)
-public class GherkinTest {
+public class GherkinTestWithMixin implements Gherkin {
     @Test
     @Scenario("Some succeeding scenario")
     @DisplayName("Some succeeding scenario")
-    public void succeedingScenario(Gherkin $) {
-        $.Given("Some given condition", () -> {
+    public void succeedingScenario() {
+        Given("Some given condition", () -> {
 
         });
 
-        $.When("Some when condition", () -> {
+        When("Some when condition", () -> {
 
         });
 
-        $.Then("Some assertion succeeds", () -> {
+        Then("Some assertion succeeds", () -> {
 
         });
     }
@@ -51,16 +49,16 @@ public class GherkinTest {
     @Disabled
     @Scenario("Some failing scenario")
     @DisplayName("Some failing scenario")
-    public void failingScenario(Gherkin $) {
-    	$.Given("Some given condition", () -> {
+    public void failingScenario() {
+        Given("Some given condition", () -> {
 
-    	});
+        });
 
-        $.When("Some when condition", () -> {
+        When("Some when condition", () -> {
             throw new Exception("TestException");
         });
 
-        $.Then("Some assertion fails", () -> {
+        Then("Some assertion fails", () -> {
 
         });
     }
@@ -68,12 +66,12 @@ public class GherkinTest {
     @Test
     @Scenario("Some scenario containing table")
     @DisplayName("Some scenario containing table")
-    public void scenarioContainingTable(Gherkin $) {
-    	$.Given("Some given condition", () -> {
+    public void scenarioContainingTable() {
+        Given("Some given condition", () -> {
 
         });
 
-        $.When("You may use a table to create structured data:" + "|Header1|Header2|Header3|"
+        When("You may use a table to create structured data:" + "|Header1|Header2|Header3|"
                 + "|value1 |value2 |value3 |", (table) -> {
 
                     assertEquals("value1", table.getRow(0).get("Header1"));
@@ -81,11 +79,9 @@ public class GherkinTest {
                     assertEquals("value3", table.getRow(0).get("Header3"));
                 });
 
-        $.Then("You may use a tables to fill pojos:"//
-        		+ "| SomeInt | SomeBoolean | SomeString |"//
-                + "|  1      | true        | someString |"//
-                + "|  7      | false       |            |",
-                $.mapTo(MyPojo.class), (table) -> {
+        Then("You may use a tables to fill pojos:" + "| SomeInt | SomeBoolean | SomeString |"
+                + "|  1      | true        | someString |" + "|  7      | false       |            |",
+                mapTo(MyPojo.class), (table) -> {
                     assertEquals(1, table.getRow(0).getSomeInt());
                     assertEquals(true, table.getRow(0).isSomeBoolean());
                     assertEquals("someString", table.getRow(0).getSomeString());
@@ -95,10 +91,10 @@ public class GherkinTest {
                     assertEquals("", table.getRow(1).getSomeString());
                 });
 
-        $.Then("You may use name overrides to decouple Headers from Pojo field names:"
+        Then("You may use name overrides to decouple Headers from Pojo field names:"
                 + "| my business int expression | my business boolean expression | my business string expression |"
                 + "| 23                         | true                           | for your interest             |",
-                $.mapTo(MyPojo.class).mapHeader("my business int expression", "someInt")
+                mapTo(MyPojo.class).mapHeader("my business int expression", "someInt")
                         .mapHeader("my business boolean expression", "someBoolean")
                         .mapHeader("my business string expression", "someString"),
                 (table) -> {
@@ -113,16 +109,16 @@ public class GherkinTest {
     @Test
     @Scenario("Some scenario with local reference")
     @DisplayName("Some scenario with local reference")
-    public void scenarioUsingLocalReference(Gherkin $, LocalReference<String> stringHolder) {
-    	$.Given("A string 'Hello' exists", () -> {
+    public void scenarioUsingLocalReference(LocalReference<String> stringHolder) {
+        Given("A string 'Hello' exists", () -> {
             stringHolder.value = "Hello";
         });
 
-    	$.When("That string is extended by ', world'", () -> {
+        When("That string is extended by ', world'", () -> {
             stringHolder.value += ", world";
         });
 
-    	$.Then("The reuslt is 'Hello, world'", () -> {
+        Then("The reuslt is 'Hello, world'", () -> {
             assertEquals("Hello, world", stringHolder.value);
         });
     }
@@ -130,28 +126,28 @@ public class GherkinTest {
     @Test
     @Scenario("Some scenario with eventually clause")
     @DisplayName("Some scenario with eventually clause")
-    public void scenarioWithEventuellyClause(Gherkin $, LocalReference<Integer> waitTime, LocalReference<Long> startTime) {
-    	$.Given("Some actions execution time takes a long time", () -> {
+    public void scenarioWithEventuellyClause(LocalReference<Integer> waitTime, LocalReference<Long> startTime) {
+        Given("Some actions execution time takes a long time", () -> {
             waitTime.value = new Random().nextInt(1000) + 2000;
         });
 
-    	$.When("That action is triggered", () -> {
+        When("That action is triggered", () -> {
             startTime.value = System.currentTimeMillis();
         });
 
-    	$.Then("Eventually clause will take care to wait for the result", () -> {
+        Then("Eventually clause will take care to wait for the result", () -> {
             assertTrue(System.currentTimeMillis() > (startTime.value + waitTime.value));
-        }, $.eventually());
+        }, eventually());
     }
 
     @Test
     @Scenario("Eventually clause may also fail")
     @DisplayName("Eventually clause may also fail")
     @Disabled
-    public void scenarioWithEventuellyClauseFails(Gherkin $) {
-        $.Then("Eventually clause will take care to wait for the result", () -> {
+    public void scenarioWithEventuellyClauseFails() {
+        Then("Eventually clause will take care to wait for the result", () -> {
             fail("test error");
-        }, $.eventually());
+        }, eventually());
     }
 
     @SuppressWarnings("unused")
@@ -184,4 +180,16 @@ public class GherkinTest {
             this.someString = someString;
         }
     }
+
+    GherkinRunner runner;
+    
+	@Override
+	public GherkinRunner getRunner() {
+		return runner;
+	}
+
+	@Override
+	public void setRunner(GherkinRunner runner) {
+		this.runner = runner;
+	}
 }

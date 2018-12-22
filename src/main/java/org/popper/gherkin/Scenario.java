@@ -21,6 +21,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+
 /**
  * Annotation identifying a test to be a Gherkin test
  *
@@ -29,6 +31,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RUNTIME)
 @Target(METHOD)
+@ExtendWith(GherkinExtension.class)
 public @interface Scenario {
     String value();
 }

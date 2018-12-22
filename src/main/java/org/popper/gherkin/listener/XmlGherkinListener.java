@@ -49,7 +49,7 @@ public class XmlGherkinListener implements GherkinFileListener {
 
     private Element actualStory;
 
-    private Element actualScenario;
+    private ThreadLocal<Element> actualScenarios = new ThreadLocal<>();
 
     @Override
     public void storyStarted(Class<?> storyClass) {
@@ -83,9 +83,9 @@ public class XmlGherkinListener implements GherkinFileListener {
 
     @Override
     public void scenarioStarted(String scenarioTitle, Method method) {
-        actualScenario = doc.createElement("scenario");
+        Element actualScenario = doc.createElement("scenario");
         actualScenario.setAttribute("title", scenarioTitle);
-        actualStory.appendChild(actualScenario);
+        actualScenarios.set(actualScenario);
     }
 
     @Override
@@ -97,33 +97,33 @@ public class XmlGherkinListener implements GherkinFileListener {
         failure.setTextContent(throwableToString(throwable));
         step.appendChild(failure);
 
-        actualScenario.appendChild(step);
+        actualScenarios.get().appendChild(step);
     }
 
     @Override
     public void stepExecutionSucceed(String type, String stepName, Optional<Table<Map<String, String>>> table) {
-        actualScenario.appendChild(createStep(type, stepName, table, "success"));
+        actualScenarios.get().appendChild(createStep(type, stepName, table, "success"));
     }
 
     @Override
     public void stepExecutionSkipped(String type, String stepName, Optional<Table<Map<String, String>>> table) {
-        actualScenario.appendChild(createStep(type, stepName, table, "skipped"));
+        actualScenarios.get().appendChild(createStep(type, stepName, table, "skipped"));
     }
 
     @Override
     public void scenarioFailed(String scenarioTitle, Method method, Throwable throwable) {
         Element failure = doc.createElement("failure");
         failure.setTextContent(throwableToString(throwable));
-        actualScenario.appendChild(failure);
+        actualScenarios.get().appendChild(failure);
 
-        actualStory.appendChild(actualScenario);
-        actualScenario = null;
+        actualStory.appendChild(actualScenarios.get());
+        actualScenarios.remove();
     }
 
     @Override
     public void scenarioSucceed(String scenarioTitle, Method method) {
-        actualStory.appendChild(actualScenario);
-        actualScenario = null;
+        actualStory.appendChild(actualScenarios.get());
+        actualScenarios.remove();
     }
 
     @Override

@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.popper.gherkin.GherkinMixin.ExecutableWithExceptionAndTable;
+import org.popper.gherkin.Gherkin.ExecutableWithExceptionAndTable;
 import org.popper.gherkin.listener.GherkinFileListener;
 import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.table.Table;

@@ -17,7 +17,6 @@ package org.popper.gherkin;
 
 import java.util.Map;
 
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.popper.gherkin.table.Table;
 import org.popper.gherkin.table.TableMapper;
 
@@ -27,61 +26,67 @@ import org.popper.gherkin.table.TableMapper;
  * @author Michael
  *
  */
-@ExtendWith(GherkinExtension.class)
-public interface GherkinMixin {
-    default void Given(String step, ExecutableWithException action) {
+public interface Gherkin extends GherkinRunnerHolder {
+    default Gherkin Given(String step, ExecutableWithException action) {
         callRunner("Given", step, (table) -> action.run(), null, null);
+        return this;
     }
 
-    default <T> void Given(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action) {
+    default <T> Gherkin Given(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action) {
         callRunner("Given", step, action, tableMapper, null);
+        return this;
     }
 
-    default void Given(String step, ExecutableWithExceptionAndTable<Map<String, String>> action) {
+    default Gherkin Given(String step, ExecutableWithExceptionAndTable<Map<String, String>> action) {
         callRunner("Given", step, action, mapTo(Map.class), null);
+        return this;
     }
 
-    default void When(String step, ExecutableWithException action) {
+    default Gherkin When(String step, ExecutableWithException action) {
         callRunner("When", step, (table) -> action.run(), null, null);
+        return this;
     }
 
-    default <T> void When(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action) {
+    default <T> Gherkin When(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action) {
         callRunner("When", step, action, tableMapper, null);
+        return this;
     }
 
-    default void When(String step, ExecutableWithExceptionAndTable<Map<String, String>> action) {
+    default Gherkin When(String step, ExecutableWithExceptionAndTable<Map<String, String>> action) {
         callRunner("When", step, action, mapTo(Map.class), null);
+        return this;
     }
 
-    default void Then(String step, ExecutableWithException action) {
+    default Gherkin Then(String step, ExecutableWithException action) {
         callRunner("Then", step, (table) -> action.run(), null, null);
+        return this;
     }
 
-    default <T> void Then(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action) {
+    default <T> Gherkin Then(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action) {
         callRunner("Then", step, action, tableMapper, null);
+        return this;
     }
 
-    default void Then(String step, ExecutableWithExceptionAndTable<Map<String, String>> action) {
+    default Gherkin Then(String step, ExecutableWithExceptionAndTable<Map<String, String>> action) {
         callRunner("Then", step, action, mapTo(Map.class), null);
+        return this;
     }
 
-    default void Then(String step, ExecutableWithException action, EventuallyConfiguration eventuelly) {
+    default Gherkin Then(String step, ExecutableWithException action, EventuallyConfiguration eventuelly) {
         callRunner("Then", step, (table) -> action.run(), null, eventuelly);
+        return this;
     }
 
-    default <T> void Then(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action,
+    default <T> Gherkin Then(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action,
             EventuallyConfiguration eventuelly) {
         callRunner("Then", step, action, tableMapper, eventuelly);
+        return this;
     }
 
-    default void Then(String step, ExecutableWithExceptionAndTable<Map<String, String>> action,
+    default Gherkin Then(String step, ExecutableWithExceptionAndTable<Map<String, String>> action,
             EventuallyConfiguration eventuelly) {
         callRunner("Then", step, action, mapTo(Map.class), eventuelly);
-    }
-
-    default void callRunner(String type, String step, ExecutableWithExceptionAndTable<?> action,
-            TableMapper<?> tableMapper, EventuallyConfiguration eventually) {
-        GherkinExtension.getRunner(getClass()).executeAction(type, step, action, tableMapper, eventually);
+        return this;
     }
 
     default <T> TableMapper<T> mapTo(Class<T> targetType) {
@@ -92,6 +97,11 @@ public interface GherkinMixin {
         return new EventuallyConfiguration();
     }
 
+    default void callRunner(String type, String step, ExecutableWithExceptionAndTable<?> action,
+            TableMapper<?> tableMapper, EventuallyConfiguration eventually) {
+    	getRunner().executeAction(type, step, action, tableMapper, eventually);
+    }
+    
     public static interface ExecutableWithException {
         public void run() throws Exception;
     }
@@ -99,4 +109,5 @@ public interface GherkinMixin {
     public static interface ExecutableWithExceptionAndTable<T> {
         public void run(Table<T> table) throws Exception;
     }
+    
 }

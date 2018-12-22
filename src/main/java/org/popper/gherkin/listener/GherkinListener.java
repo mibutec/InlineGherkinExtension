@@ -24,7 +24,9 @@ import org.popper.gherkin.Narrative;
 import org.popper.gherkin.table.Table;
 
 /**
- * Listener to register for the events created by {@link GherkinRunner} when executing tests
+ * Listener to register for the events created by {@link GherkinRunner} when executing tests.
+ * 
+ * In case you are using parallel test execution your listener must be Thread-safe.
  *
  * @author Michael
  *
