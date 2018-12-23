@@ -24,9 +24,10 @@ import java.util.Random;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @Narrative(inOrderTo = "write gherkin like tests", asA = "Test developer", iWantTo = "use InlineGherkin")
-@GherkinConfiguration(catchCompleteOutput = true)
+@ExtendWith(GherkinExtension.class)
 public class GherkinTestWithMixin implements Gherkin {
     @Test
     @Scenario("Some succeeding scenario")

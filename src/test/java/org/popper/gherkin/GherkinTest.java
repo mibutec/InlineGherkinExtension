@@ -15,20 +15,22 @@
  */
 package org.popper.gherkin;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.popper.gherkin.customizer.ErrorStore;
 
 @Narrative(inOrderTo = "write gherkin like tests", asA = "Test developer", iWantTo = "use InlineGherkin")
 @ExtendWith(GherkinExtension.class)
-@GherkinConfiguration(catchCompleteOutput = true)
 public class GherkinTest {
 	@Test
 	@Scenario("Some succeeding scenario")
@@ -167,7 +169,7 @@ public class GherkinTest {
 			assertTrue(System.currentTimeMillis() > (startTime.value + waitTime.value));
 		}, $.eventually());
 	}
-	
+
 	@Test
 	@Scenario("Eventually clause may also fail")
 	@DisplayName("Eventually clause may also fail")
@@ -176,6 +178,34 @@ public class GherkinTest {
 		$.Then("Eventually clause will take care to wait for the result", () -> {
 			fail("test error");
 		}, $.eventually());
+	}
+
+	@Test
+	@Scenario("Native support for checks of exception throwing")
+	@DisplayName("Native support for checks of exception throwing")
+	public void scenarioWithAnExpectedException(Gherkin $, ErrorStore errorStore) {
+		$.When("One step throws an exception", () -> {
+			throw new RuntimeException("expected exception");
+		}, errorStore);
+
+		$.Then("That exception may be evaluated in a following step", () -> {
+			assertNotNull(errorStore.getLastCaughtThrowable());
+			assertTrue(errorStore.getLastCaughtThrowable() instanceof RuntimeException);
+		});
+	}
+
+	@Test
+	@Scenario("Allows throwing of checked exceptions inside step")
+	@DisplayName("Allows throwing of checked exceptions inside step")
+	public void throwCheckedException(Gherkin $, ErrorStore errorStore) {
+		$.When("A checked exception is thrown", () -> {
+			throw new IOException("expected checked exception");
+		}, errorStore);
+
+		$.Then("That exception is handled correctly and may be evaluated in a following step", () -> {
+			assertNotNull(errorStore.getLastCaughtThrowable());
+			assertTrue(errorStore.getLastCaughtThrowable() instanceof IOException);
+		});
 	}
 
 	@SuppressWarnings("unused")
@@ -209,7 +239,6 @@ public class GherkinTest {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private static class MyPojoWithConstructorArg {
 		private final int someInt;
 		private final boolean someBoolean;

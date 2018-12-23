@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.popper.gherkin.customizer.Customizer;
+
 /**
  * Configuration how to map a gherkin table to
  *

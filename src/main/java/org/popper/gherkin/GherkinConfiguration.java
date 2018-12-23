@@ -42,7 +42,5 @@ public @interface GherkinConfiguration {
 
     Class<? extends GherkinListener>[] listeners() default {XmlGherkinListener.class};
 
-    boolean catchCompleteOutput() default false;
-
     Class<? extends RunnerFactory> runnerFactory() default DefaultRunnerFactory.class;
 }

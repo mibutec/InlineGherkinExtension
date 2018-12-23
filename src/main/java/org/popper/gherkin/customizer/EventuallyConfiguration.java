@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.popper.gherkin;
+package org.popper.gherkin.customizer;
 
 /**
  * Timeout configurations when using eventually()
@@ -21,7 +21,7 @@ package org.popper.gherkin;
  * @author Michael
  *
  */
-public class EventuallyConfiguration {
+public class EventuallyConfiguration implements Customizer {
     private int timeoutInMs;
     private int intervalInMs;
 

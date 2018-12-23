@@ -34,6 +34,8 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.popper.gherkin.GherkinRunner.DefaultRunnerFactory;
+import org.popper.gherkin.customizer.DefaultErrorHandler;
+import org.popper.gherkin.customizer.ErrorStore;
 import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.listener.XmlGherkinListener;
 
@@ -80,7 +82,7 @@ public class GherkinExtension
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
     	Class<?> expectedType = parameterContext.getParameter().getType();
-        return expectedType.equals(LocalReference.class) || expectedType.equals(Gherkin.class);
+        return expectedType.equals(LocalReference.class) || expectedType.equals(Gherkin.class) || expectedType.equals(ErrorStore.class);
     }
 
     @Override
@@ -90,6 +92,8 @@ public class GherkinExtension
     	
     	if (expectedType.equals(LocalReference.class)) {
     		return new LocalReference<>();
+    	} else if (expectedType.equals(ErrorStore.class)) {
+    		return new ErrorStore();
     	} else {
     		GherkinImpl impl = new GherkinImpl();
     		impl.setRunner(getOrCreateRunner(extensionContext));
@@ -110,8 +114,8 @@ public class GherkinExtension
         if (runner == null) {
             GherkinConfiguration configAnnotation = AnnotationUtils
                     .findAnnotation(testClass, GherkinConfiguration.class).orElse(null);
-            runner = runnerFactory(configAnnotation).createRunner(context, catchCompleteOutput(configAnnotation),
-                    listeners(configAnnotation), baseDir(configAnnotation));
+            runner = runnerFactory(configAnnotation).createRunner(context, 
+                    listeners(configAnnotation), new DefaultErrorHandler(), baseDir(configAnnotation));
             activeRunners.put(testClass, runner);
         }
 
@@ -125,16 +129,6 @@ public class GherkinExtension
             return configAnnotation.baseDir();
         } else {
             return "./target/gherkin";
-        }
-    }
-
-    private boolean catchCompleteOutput(GherkinConfiguration configAnnotation) {
-        if (System.getProperty("gherkin.catchCompleteOutput") != null) {
-            return Boolean.valueOf(System.getProperty("gherkin.catchCompleteOutput"));
-        } else if (configAnnotation != null) {
-            return configAnnotation.catchCompleteOutput();
-        } else {
-            return false;
         }
     }
 
