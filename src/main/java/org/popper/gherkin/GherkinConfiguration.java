@@ -28,19 +28,20 @@ import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.listener.XmlGherkinListener;
 
 /**
- * Annotation to configure behavior of {@link GherkinExtension}. May be used on class level to configure
- * the whole test class or on method level to configure one test
+ * Annotation to configure behavior of {@link GherkinExtension}. May be used on
+ * class level to configure the whole test class or on method level to configure
+ * one test
  *
  * @author Michael
  *
  */
 @Retention(RUNTIME)
-@Target({TYPE, METHOD})
+@Target({ TYPE, METHOD })
 @Inherited
 public @interface GherkinConfiguration {
     String baseDir() default "./target/gherkin";
 
-    Class<? extends GherkinListener>[] listeners() default {XmlGherkinListener.class};
+    Class<? extends GherkinListener>[] listeners() default { XmlGherkinListener.class };
 
     Class<? extends RunnerFactory> runnerFactory() default DefaultRunnerFactory.class;
 }

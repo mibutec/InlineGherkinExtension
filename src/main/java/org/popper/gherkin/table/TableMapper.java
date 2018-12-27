@@ -38,7 +38,7 @@ public class TableMapper<T> {
     private Class<T> targetType;
 
     private PojoMapper<T> pojoMapper;
-    
+
     private PojoFactory<T> pojoFactory;
 
     private final Map<String, String> nameOverrides = new HashMap<>();
@@ -81,22 +81,23 @@ public class TableMapper<T> {
         nameOverrides.put(source, target);
         return this;
     }
-    
+
     public PojoFactory<T> getPojoFactory() {
-		return pojoFactory;
-	}
+        return pojoFactory;
+    }
 
-	public TableMapper<T> withPojoFactory(PojoFactory<T> pojoFactory) {
-		this.pojoFactory = pojoFactory;
-		return this;
-	}
+    public TableMapper<T> withPojoFactory(PojoFactory<T> pojoFactory) {
+        this.pojoFactory = pojoFactory;
+        return this;
+    }
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public Table<T> createTable(String step) {
         Table<Map<String, String>> mapTable = createMapTable(step);
 
         if (targetType != Map.class) {
-            List<T> convertedRows = mapTable.getRows().stream().map(m -> pojoMapper.mapToPojo(m, pojoFactory.createPojo(targetType, m)))
+            List<T> convertedRows = mapTable.getRows().stream()
+                    .map(m -> pojoMapper.mapToPojo(m, pojoFactory.createPojo(targetType, m)))
                     .collect(Collectors.toList());
             return new Table<>(mapTable.getHeaders(), convertedRows);
         } else {

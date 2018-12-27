@@ -17,13 +17,14 @@ package org.popper.gherkin.customizer;
 
 /**
  * Default implementation of {@link ErrorHandler} rethrowing the error
+ * 
  * @author Michael
  *
  */
 public class DefaultErrorHandler implements ErrorHandler {
 
-	@Override
-	public Throwable handleError(Throwable th) {
-		return th;
-	}
+    @Override
+    public Throwable handleError(Throwable th) {
+        return th;
+    }
 }

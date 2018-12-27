@@ -27,6 +27,6 @@ import org.popper.gherkin.listener.GherkinListener;
  * @author Michael
  */
 public interface RunnerFactory {
-    GherkinRunner createRunner(ExtensionContext context, Set<GherkinListener> listeners,
-           ErrorHandler errorHandler, String baseDir);
+    GherkinRunner createRunner(ExtensionContext context, Set<GherkinListener> listeners, ErrorHandler errorHandler,
+            String baseDir);
 }

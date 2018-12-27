@@ -45,27 +45,27 @@ import org.popper.gherkin.listener.XmlGherkinListener;
  * @author Michael
  *
  */
-public class GherkinExtension
-        implements BeforeEachCallback, AfterEachCallback, BeforeAllCallback, AfterAllCallback, ParameterResolver, TestInstancePostProcessor {
+public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, BeforeAllCallback, AfterAllCallback,
+        ParameterResolver, TestInstancePostProcessor {
     private static final Map<Class<?>, GherkinRunner> activeRunners = new ConcurrentHashMap<>();
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
-    	try {
-    		getOrCreateRunner(context).startClass(context);
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    	}
+        try {
+            getOrCreateRunner(context).startClass(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-    	try {
-        getOrCreateRunner(context).startMethod(context.getRequiredTestInstance(), context.getRequiredTestMethod());
-       	} catch (Exception e) {
-    		e.printStackTrace();
-    	}
-     }
+        try {
+            getOrCreateRunner(context).startMethod(context.getRequiredTestInstance(), context.getRequiredTestMethod());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
@@ -81,32 +81,33 @@ public class GherkinExtension
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
-    	Class<?> expectedType = parameterContext.getParameter().getType();
-        return expectedType.equals(LocalReference.class) || expectedType.equals(Gherkin.class) || expectedType.equals(ErrorStore.class);
+        Class<?> expectedType = parameterContext.getParameter().getType();
+        return expectedType.equals(LocalReference.class) || expectedType.equals(Gherkin.class)
+                || expectedType.equals(ErrorStore.class);
     }
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
-    	Class<?> expectedType = parameterContext.getParameter().getType();
-    	
-    	if (expectedType.equals(LocalReference.class)) {
-    		return new LocalReference<>();
-    	} else if (expectedType.equals(ErrorStore.class)) {
-    		return new ErrorStore();
-    	} else {
-    		GherkinImpl impl = new GherkinImpl();
-    		impl.setRunner(getOrCreateRunner(extensionContext));
-   			return impl;
-    	}
+        Class<?> expectedType = parameterContext.getParameter().getType();
+
+        if (expectedType.equals(LocalReference.class)) {
+            return new LocalReference<>();
+        } else if (expectedType.equals(ErrorStore.class)) {
+            return new ErrorStore();
+        } else {
+            GherkinImpl impl = new GherkinImpl();
+            impl.setRunner(getOrCreateRunner(extensionContext));
+            return impl;
+        }
     }
-    
-	@Override
-	public void postProcessTestInstance(Object testInstance, ExtensionContext context) throws Exception {
-		if (testInstance instanceof GherkinRunnerHolder) {
-			((GherkinRunnerHolder) testInstance).setRunner(getOrCreateRunner(context));
-		}
-	}
+
+    @Override
+    public void postProcessTestInstance(Object testInstance, ExtensionContext context) throws Exception {
+        if (testInstance instanceof GherkinRunnerHolder) {
+            ((GherkinRunnerHolder) testInstance).setRunner(getOrCreateRunner(context));
+        }
+    }
 
     synchronized GherkinRunner getOrCreateRunner(ExtensionContext context) {
         Class<?> testClass = context.getRequiredTestClass();
@@ -114,8 +115,8 @@ public class GherkinExtension
         if (runner == null) {
             GherkinConfiguration configAnnotation = AnnotationUtils
                     .findAnnotation(testClass, GherkinConfiguration.class).orElse(null);
-            runner = runnerFactory(configAnnotation).createRunner(context, 
-                    listeners(configAnnotation), new DefaultErrorHandler(), baseDir(configAnnotation));
+            runner = runnerFactory(configAnnotation).createRunner(context, listeners(configAnnotation),
+                    new DefaultErrorHandler(), baseDir(configAnnotation));
             activeRunners.put(testClass, runner);
         }
 

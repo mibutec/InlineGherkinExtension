@@ -16,20 +16,22 @@
 package org.popper.gherkin;
 
 /**
- * Describes a class having access to a {@link GherkinRunner}. If this interface is implemented by a test, the set method
- * will be called before tests are executed.
+ * Describes a class having access to a {@link GherkinRunner}. If this interface
+ * is implemented by a test, the set method will be called before tests are
+ * executed.
  * 
  * @author Michael
  *
  */
 public interface GherkinRunnerHolder {
-	/**
-	 * Provides access to {@link GherkinRunner}
-	 */
-	GherkinRunner getRunner();
-	
-	/**
-	 * Initializes this instance of a {@link GherkinRunnerHolder}. Will be called by {@link GherkinExtension}
-	 */
-	void setRunner(GherkinRunner runner);
+    /**
+     * Provides access to {@link GherkinRunner}
+     */
+    GherkinRunner getRunner();
+
+    /**
+     * Initializes this instance of a {@link GherkinRunnerHolder}. Will be called by
+     * {@link GherkinExtension}
+     */
+    void setRunner(GherkinRunner runner);
 }

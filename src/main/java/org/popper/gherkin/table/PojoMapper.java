@@ -18,10 +18,11 @@ package org.popper.gherkin.table;
 import java.util.Map;
 
 /**
- * When using pojos in steps using tables, this interfaces is used to map a Map<String, String> to pojo
+ * When using pojos in steps using tables, this interfaces is used to map a
+ * Map<String, String> to pojo
  * 
  * @author Michael
  */
 public interface PojoMapper<T> {
-	T mapToPojo(Map<String, String> map, T targetType);
+    T mapToPojo(Map<String, String> map, T targetType);
 }

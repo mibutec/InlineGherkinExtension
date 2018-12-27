@@ -20,11 +20,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Representation of a Table used in Gherkin syntax. Example:
- * Some step:
- * || Header 1 | Header 2 | Header 3 |
- * | val 1     | val 2    | val 3    |
- * | val 4     | val 5    | val 6    |
+ * Representation of a Table used in Gherkin syntax. Example: Some step: ||
+ * Header 1 | Header 2 | Header 3 | | val 1 | val 2 | val 3 | | val 4 | val 5 |
+ * val 6 |
  *
  * The Table may be mapped to a List<Map> structure or List<SomePojo>
  *

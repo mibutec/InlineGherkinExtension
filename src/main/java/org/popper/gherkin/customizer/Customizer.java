@@ -16,8 +16,8 @@
 package org.popper.gherkin.customizer;
 
 /**
- * Marker interface defining a customizer.
- * Customizers are special classes provided to a step customizing the behavior of step execution
+ * Marker interface defining a customizer. Customizers are special classes
+ * provided to a step customizing the behavior of step execution
  * 
  * @author Michael
  *

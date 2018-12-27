@@ -32,7 +32,6 @@
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
 			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<distribution>repo</distribution>
 		</license>
 	</licenses>
 
@@ -46,6 +45,11 @@
 		<url>https://github.com/mibutec/InlineGherkinExtension</url>
 		<connection>scm:git:git://github.com:mibutec/InlineGherkinExtension.git</connection>
 	</scm>
+	
+	<properties>
+		<java.version>1.8</java.version>
+		<source.encoding>UTF-8</source.encoding>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -65,8 +69,8 @@
 			<version>1.3.2</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- necessary to get around NoClassDefFound on errors in extension execution, JUNit 
-			Bug? -->
+		<!-- necessary to get around NoClassDefFound on errors in extension execution, 
+			JUNit Bug? -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -86,9 +90,9 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.0</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-					<encoding>UTF-8</encoding>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${source.encoding}</encoding>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -98,7 +102,6 @@
 				<configuration>
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
-					<wtpversion>2.0</wtpversion>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -119,7 +122,7 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.10.4</version>
 				<configuration>
-					<encoding>UTF-8</encoding>
+					<encoding>${source.encoding}</encoding>
 					<additionalparam>-Xdoclint:none</additionalparam>
 				</configuration>
 				<executions>
@@ -143,6 +146,7 @@
 						<project.inceptionYear>2018</project.inceptionYear>
 					</properties>
 					<excludes>
+						<exclude>code-formatter-config.xml</exclude>
 						<exclude>_config.yml</exclude>
 						<exclude>.travis/settings.xml</exclude>
 						<exclude>**/*.properties</exclude>
@@ -156,6 +160,27 @@
 					<execution>
 						<goals>
 							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>net.revelc.code.formatter</groupId>
+				<artifactId>formatter-maven-plugin</artifactId>
+				<version>2.8.1</version>
+				<configuration>
+					<encoding>${source.encoding}</encoding>
+					<configFile>${project.basedir}/code-formatter-config.xml</configFile>
+					<overrideConfigCompilerVersion>true</overrideConfigCompilerVersion>
+					<compilerSource>${java.version}</compilerSource>
+					<compilerCompliance>${java.version}</compilerCompliance>
+					<compilerTargetPlatform>${java.version}</compilerTargetPlatform>
+					<lineEnding>LF</lineEnding>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>validate</goal>
 						</goals>
 					</execution>
 				</executions>

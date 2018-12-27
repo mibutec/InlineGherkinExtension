@@ -16,20 +16,22 @@
 package org.popper.gherkin.customizer;
 
 /**
- * {@link ErrorHandler} to be used to store exception that happened during test execution
+ * {@link ErrorHandler} to be used to store exception that happened during test
+ * execution
+ * 
  * @author Michael
  *
  */
 public class ErrorStore implements ErrorHandler {
-	private Throwable lastCaughtThrowable;
-	
-	@Override
-	public Throwable handleError(Throwable th) {
-		lastCaughtThrowable = th;
-		return null;
-	}
+    private Throwable lastCaughtThrowable;
 
-	public Throwable getLastCaughtThrowable() {
-		return lastCaughtThrowable;
-	}
+    @Override
+    public Throwable handleError(Throwable th) {
+        lastCaughtThrowable = th;
+        return null;
+    }
+
+    public Throwable getLastCaughtThrowable() {
+        return lastCaughtThrowable;
+    }
 }

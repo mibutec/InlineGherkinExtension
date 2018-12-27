@@ -24,5 +24,5 @@ import java.io.File;
  *
  */
 public interface GherkinFileListener extends GherkinListener {
-	void toFile(File baseDir);
+    void toFile(File baseDir);
 }

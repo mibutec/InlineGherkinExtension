@@ -27,15 +27,15 @@ import java.util.Map;
  */
 public class DefaultPojoFactory<T> implements PojoFactory<T> {
 
-	@Override
-	public T createPojo(Class<T> pojoClass, Map<String, String> valuesAsMap) {
-	        try {
-				Constructor<T> constructor = pojoClass.getDeclaredConstructor();
-				constructor.setAccessible(true);
-				return constructor.newInstance();
-			} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
-					| IllegalArgumentException | InvocationTargetException e) {
-				throw new IllegalStateException("error instantiating pojo of type " + pojoClass.getSimpleName());
-			}
-	}
+    @Override
+    public T createPojo(Class<T> pojoClass, Map<String, String> valuesAsMap) {
+        try {
+            Constructor<T> constructor = pojoClass.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                | IllegalArgumentException | InvocationTargetException e) {
+            throw new IllegalStateException("error instantiating pojo of type " + pojoClass.getSimpleName());
+        }
+    }
 }

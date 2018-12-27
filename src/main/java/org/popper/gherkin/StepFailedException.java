@@ -22,16 +22,16 @@ package org.popper.gherkin;
  *
  */
 public class StepFailedException extends RuntimeException {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private final String failedStep;
+    private final String failedStep;
 
-	public StepFailedException(String failedStep, Throwable throwable) {
-		super("Step failed: " + failedStep, throwable);
-		this.failedStep = failedStep;
-	}
+    public StepFailedException(String failedStep, Throwable throwable) {
+        super("Step failed: " + failedStep, throwable);
+        this.failedStep = failedStep;
+    }
 
-	public String getFailedStep() {
-		return failedStep;
-	}
+    public String getFailedStep() {
+        return failedStep;
+    }
 }

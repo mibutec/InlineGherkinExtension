@@ -16,9 +16,10 @@
 package org.popper.gherkin;
 
 /**
- * Convenience class helping getting around java limitions.
- * Problem: When working with lambdas in methods, all used variables are made automatically final
- * Solution: Use a {@link LocalReference} as method variable. The inner value won't get final
+ * Convenience class helping getting around java limitions. Problem: When
+ * working with lambdas in methods, all used variables are made automatically
+ * final Solution: Use a {@link LocalReference} as method variable. The inner
+ * value won't get final
  *
  * @author Michael
  *

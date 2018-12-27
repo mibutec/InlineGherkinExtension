@@ -24,5 +24,5 @@ import java.util.Map;
  *
  */
 public interface PojoFactory<T> {
-	T createPojo(Class<T> pojoClass, Map<String, String> valuesAsMap);
+    T createPojo(Class<T> pojoClass, Map<String, String> valuesAsMap);
 }

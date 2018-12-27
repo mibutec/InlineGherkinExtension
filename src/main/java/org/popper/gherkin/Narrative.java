@@ -30,7 +30,9 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(TYPE)
 public @interface Narrative {
-	String asA();
-	String iWantTo();
-	String inOrderTo();
+    String asA();
+
+    String iWantTo();
+
+    String inOrderTo();
 }

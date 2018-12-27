@@ -17,9 +17,10 @@ package org.popper.gherkin.customizer;
 
 /**
  * Customizer defining how to handle errors occureing in step execution
+ * 
  * @author Michael
  *
  */
 public interface ErrorHandler extends Customizer {
-	Throwable handleError(Throwable th);
+    Throwable handleError(Throwable th);
 }

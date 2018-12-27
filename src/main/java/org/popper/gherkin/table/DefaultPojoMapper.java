@@ -22,7 +22,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * Implementation of {@link PojoMapper} mapping each entry from map to a setter method or field of a given target class
+ * Implementation of {@link PojoMapper} mapping each entry from map to a setter
+ * method or field of a given target class
  *
  * @author Michael
  */
@@ -41,8 +42,7 @@ public class DefaultPojoMapper<T> implements PojoMapper<T> {
             }
 
             return target;
-        } catch (SecurityException | IllegalAccessException
-                | IllegalArgumentException | InvocationTargetException e) {
+        } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new IllegalStateException("could not map " + map + " to " + target.getClass().getSimpleName(), e);
         }
     }
@@ -80,7 +80,7 @@ public class DefaultPojoMapper<T> implements PojoMapper<T> {
         return false;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     protected Object stringToType(String str, Class<?> targetType) {
         if (str == null) {
             return null;

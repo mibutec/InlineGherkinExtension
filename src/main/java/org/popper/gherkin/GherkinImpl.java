@@ -16,22 +16,22 @@
 package org.popper.gherkin;
 
 /**
- * Implementation of {@link Gherkin} to be used as resolved parameter in tests, or may be used to be extended
- * by tests
+ * Implementation of {@link Gherkin} to be used as resolved parameter in tests,
+ * or may be used to be extended by tests
  * 
  * @author Michael
  *
  */
 public class GherkinImpl implements Gherkin {
-	private GherkinRunner runner;
-	
-	@Override
-	public GherkinRunner getRunner() {
-		return runner;
-	}
+    private GherkinRunner runner;
 
-	@Override
-	public void setRunner(GherkinRunner runner) {
-		this.runner = runner;
-	}
+    @Override
+    public GherkinRunner getRunner() {
+        return runner;
+    }
+
+    @Override
+    public void setRunner(GherkinRunner runner) {
+        this.runner = runner;
+    }
 }

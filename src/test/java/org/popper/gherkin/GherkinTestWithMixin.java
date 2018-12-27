@@ -182,14 +182,14 @@ public class GherkinTestWithMixin implements Gherkin {
     }
 
     GherkinRunner runner;
-    
-	@Override
-	public GherkinRunner getRunner() {
-		return runner;
-	}
 
-	@Override
-	public void setRunner(GherkinRunner runner) {
-		this.runner = runner;
-	}
+    @Override
+    public GherkinRunner getRunner() {
+        return runner;
+    }
+
+    @Override
+    public void setRunner(GherkinRunner runner) {
+        this.runner = runner;
+    }
 }

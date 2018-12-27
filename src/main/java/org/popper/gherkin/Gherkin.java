@@ -25,7 +25,8 @@ import org.popper.gherkin.table.Table;
 import org.popper.gherkin.table.TableMapper;
 
 /**
- * Mixin to be added to a test providing the syntax methods to be used when writing tests
+ * Mixin to be added to a test providing the syntax methods to be used when
+ * writing tests
  *
  * @author Michael
  *
@@ -36,12 +37,14 @@ public interface Gherkin extends GherkinRunnerHolder {
         return this;
     }
 
-    default Gherkin Given(String step, ExecutableWithExceptionAndTable<Map<String, String>> action, Customizer... customizers) {
+    default Gherkin Given(String step, ExecutableWithExceptionAndTable<Map<String, String>> action,
+            Customizer... customizers) {
         callRunner("Given", step, action, mapTo(Map.class), Arrays.asList(customizers));
         return this;
     }
 
-    default <T> Gherkin Given(String step, TableMapper<T> mapper, ExecutableWithExceptionAndTable<T> action, Customizer... customizers) {
+    default <T> Gherkin Given(String step, TableMapper<T> mapper, ExecutableWithExceptionAndTable<T> action,
+            Customizer... customizers) {
         callRunner("Given", step, action, mapper, Arrays.asList(customizers));
         return this;
     }
@@ -51,12 +54,14 @@ public interface Gherkin extends GherkinRunnerHolder {
         return this;
     }
 
-    default Gherkin When(String step, ExecutableWithExceptionAndTable<Map<String, String>> action, Customizer... customizers) {
+    default Gherkin When(String step, ExecutableWithExceptionAndTable<Map<String, String>> action,
+            Customizer... customizers) {
         callRunner("When", step, action, mapTo(Map.class), Arrays.asList(customizers));
         return this;
     }
-    
-    default <T> Gherkin When(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action, Customizer... customizers) {
+
+    default <T> Gherkin When(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action,
+            Customizer... customizers) {
         callRunner("When", step, action, tableMapper, Arrays.asList(customizers));
         return this;
     }
@@ -66,12 +71,14 @@ public interface Gherkin extends GherkinRunnerHolder {
         return this;
     }
 
-    default Gherkin Then(String step, ExecutableWithExceptionAndTable<Map<String, String>> action, Customizer... customizers) {
+    default Gherkin Then(String step, ExecutableWithExceptionAndTable<Map<String, String>> action,
+            Customizer... customizers) {
         callRunner("Then", step, action, mapTo(Map.class), Arrays.asList(customizers));
         return this;
     }
-    
-    default <T> Gherkin Then(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action, Customizer... customizers) {
+
+    default <T> Gherkin Then(String step, TableMapper<T> tableMapper, ExecutableWithExceptionAndTable<T> action,
+            Customizer... customizers) {
         callRunner("Then", step, action, tableMapper, Arrays.asList(customizers));
         return this;
     }
@@ -86,9 +93,9 @@ public interface Gherkin extends GherkinRunnerHolder {
 
     default void callRunner(String type, String step, ExecutableWithExceptionAndTable<?> action,
             TableMapper<?> tableMapper, List<Customizer> customizers) {
-    	getRunner().executeAction(type, step, action, tableMapper, customizers);
+        getRunner().executeAction(type, step, action, tableMapper, customizers);
     }
-    
+
     public static interface ExecutableWithException {
         public void run() throws Exception;
     }
@@ -96,5 +103,5 @@ public interface Gherkin extends GherkinRunnerHolder {
     public static interface ExecutableWithExceptionAndTable<T> {
         public void run(Table<T> table) throws Exception;
     }
-    
+
 }
