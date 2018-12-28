@@ -175,7 +175,7 @@
 					<compilerSource>${java.version}</compilerSource>
 					<compilerCompliance>${java.version}</compilerCompliance>
 					<compilerTargetPlatform>${java.version}</compilerTargetPlatform>
-					<lineEnding>KEEP</lineEnding>
+					<lineEnding>LF</lineEnding>
 				</configuration>
 				<executions>
 					<execution>
