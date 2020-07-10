@@ -1,11 +1,11 @@
 /*
- * Copyright © 2018 Michael Bulla (michaelbulla@gmail.com)
+ * Copyright [2018] [Michael Bulla, michaelbulla@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,8 +21,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.junit.jupiter.api.extension.ExtendWith;
-
 /**
  * Annotation identifying a test to be a Gherkin test
  *
@@ -31,7 +29,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  */
 @Retention(RUNTIME)
 @Target(METHOD)
-@ExtendWith(GherkinExtension.class)
 public @interface Scenario {
     String value();
 }

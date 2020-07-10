@@ -1,11 +1,11 @@
 /*
- * Copyright © 2018 Michael Bulla (michaelbulla@gmail.com)
+ * Copyright [2018] [Michael Bulla, michaelbulla@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.popper.gherkin.customizer.Customizer;
-
 /**
  * Configuration how to map a gherkin table to
  *
@@ -33,13 +31,9 @@ import org.popper.gherkin.customizer.Customizer;
 public class TableMapper<T> {
     private static final PojoMapper<?> DefaultPojoMapper = new DefaultPojoMapper<>();
 
-    private static final PojoFactory<?> DefaultPojoFactory = new DefaultPojoFactory<>();
-
     private Class<T> targetType;
 
     private PojoMapper<T> pojoMapper;
-
-    private PojoFactory<T> pojoFactory;
 
     private final Map<String, String> nameOverrides = new HashMap<>();
 
@@ -47,7 +41,6 @@ public class TableMapper<T> {
     public TableMapper(Class<T> targetType) {
         this.targetType = targetType;
         pojoMapper = (PojoMapper<T>) DefaultPojoMapper;
-        pojoFactory = (PojoFactory<T>) DefaultPojoFactory;
     }
 
     public Class<T> getTargetType() {
@@ -82,22 +75,12 @@ public class TableMapper<T> {
         return this;
     }
 
-    public PojoFactory<T> getPojoFactory() {
-        return pojoFactory;
-    }
-
-    public TableMapper<T> withPojoFactory(PojoFactory<T> pojoFactory) {
-        this.pojoFactory = pojoFactory;
-        return this;
-    }
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Table<T> createTable(String step) {
         Table<Map<String, String>> mapTable = createMapTable(step);
 
         if (targetType != Map.class) {
-            List<T> convertedRows = mapTable.getRows().stream()
-                    .map(m -> pojoMapper.mapToPojo(m, pojoFactory.createPojo(targetType, m)))
+            List<T> convertedRows = mapTable.getRows().stream().map(m -> pojoMapper.mapToPojo(m, targetType))
                     .collect(Collectors.toList());
             return new Table<>(mapTable.getHeaders(), convertedRows);
         } else {

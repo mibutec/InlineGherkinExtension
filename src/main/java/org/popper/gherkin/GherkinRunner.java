@@ -1,11 +1,11 @@
 /*
- * Copyright © 2018 Michael Bulla (michaelbulla@gmail.com)
+ * Copyright [2018] [Michael Bulla, michaelbulla@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,25 +17,20 @@ package org.popper.gherkin;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.popper.gherkin.Gherkin.ExecutableWithExceptionAndTable;
-import org.popper.gherkin.customizer.Customizer;
-import org.popper.gherkin.customizer.ErrorHandler;
-import org.popper.gherkin.customizer.EventuallyConfiguration;
+import org.popper.gherkin.GherkinMixin.ExecutableWithExceptionAndTable;
 import org.popper.gherkin.listener.GherkinFileListener;
 import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.table.Table;
 import org.popper.gherkin.table.TableMapper;
 
 /**
- * Main class responsible to execute step actions, do error handling and
- * delegating events to {@link GherkinListener}s
+ * Main class responsible to execute step actions, do error handling and delegating events to {@link GherkinListener}s
  *
  * @author Michael
  *
@@ -45,34 +40,39 @@ public class GherkinRunner {
 
     private final File baseDir;
 
-    private final ErrorHandler defaultErrorHandler;
+    private final boolean catchCompleteOutput;
 
-    public GherkinRunner(Set<GherkinListener> listeners, ErrorHandler defaultErrorHandler, String baseDir) {
+    private Throwable caughtFailure = null;
+
+    private ExtensionContext contextInUse = null;
+
+    public GherkinRunner(boolean catchCompleteOutput, Set<GherkinListener> listeners, String baseDir) {
         this.listeners = listeners;
-        this.defaultErrorHandler = defaultErrorHandler;
+        this.catchCompleteOutput = catchCompleteOutput;
         this.baseDir = new File(baseDir);
         this.baseDir.mkdirs();
     }
 
     public void startClass(ExtensionContext context) {
-        fireEvent(l -> l.storyStarted(context.getRequiredTestClass()));
+        fireEvent(l -> l.storyStarted(context, context.getRequiredTestClass()));
         Narrative narrative = context.getRequiredTestClass().getAnnotation(Narrative.class);
         if (narrative != null) {
-            listeners.forEach(l -> l.narrative(narrative));
+            listeners.forEach(l -> l.narrative(context, narrative));
         }
     }
 
-    public void startMethod(Object testInstance, Method method) {
-        fireEvent(l -> l.scenarioStarted(getScenarioTitle(testInstance, method), method));
+    public void startMethod(ExtensionContext context, Object testInstance, Method method) {
+        contextInUse = context;
+        String scenarioTitle = getScenarioTitle(testInstance, method);
+        context.publishReportEntry("scenario", scenarioTitle);
+        fireEvent(l -> l.scenarioStarted(context, scenarioTitle, method));
     }
 
     public void executeAction(String type, String step, ExecutableWithExceptionAndTable<?> action,
-            TableMapper<?> tableMapper, List<Customizer> customizers) {
-        ErrorHandler errorHandler = getCustomizer(customizers, ErrorHandler.class);
-        if (errorHandler == null) {
-            errorHandler = defaultErrorHandler;
+            TableMapper<?> tableMapper, EventuallyConfiguration eventuall) {
+        if (contextInUse == null) {
+            throw new RuntimeException("contextInUse may not be null");
         }
-        EventuallyConfiguration eventually = getCustomizer(customizers, EventuallyConfiguration.class);
 
         Optional<Table<Map<String, String>>> table;
         String stepWithoutTable;
@@ -84,34 +84,43 @@ public class GherkinRunner {
             stepWithoutTable = step;
         }
 
-        fireEvent(l -> l.stepExecutionStarts(type, stepWithoutTable, table));
-        try {
-            Table<?> convertedTable = tableMapper != null ? tableMapper.createTable(step) : null;
-            runAction(action, convertedTable, eventually);
-            fireEvent(l -> l.stepExecutionSucceed(type, stepWithoutTable, table));
-        } catch (Throwable th) {
-            Throwable handledError = errorHandler.handleError(th);
-            if (handledError == null) {
-                fireEvent(l -> l.stepExecutionSucceed(type, stepWithoutTable, table));
-            } else {
-                fireEvent(l -> l.stepExecutionFailed(type, stepWithoutTable, table, th));
-                handleCheckedExceptions(th);
+        if (caughtFailure != null) {
+            fireEvent(l -> l.stepExecutionSkipped(contextInUse, type, stepWithoutTable, table));
+        } else {
+            fireEvent(l -> l.stepExecutionStarts(contextInUse, type, stepWithoutTable, table));
+            try {
+                Table<?> convertedTable = tableMapper != null ? tableMapper.createTable(step) : null;
+                runAction(action, convertedTable, eventuall);
+                fireEvent(l -> l.stepExecutionSucceed(contextInUse, type, stepWithoutTable, table));
+            } catch (Throwable th) {
+                fireEvent(l -> l.stepExecutionFailed(contextInUse, type, stepWithoutTable, table, th));
+                caughtFailure = th;
+                if (!catchCompleteOutput) {
+                    throw this.<RuntimeException> handleError(th);
+                }
             }
         }
     }
 
-    private <C> C getCustomizer(List<Customizer> customizers, Class<C> customizerToFind) {
-        for (Customizer customizer : customizers) {
-            if (customizer != null && customizerToFind.isAssignableFrom(customizer.getClass())) {
-                return customizerToFind.cast(customizer);
-            }
-        }
+    public void endMethod(ExtensionContext context, Object testInstance, Method method, Optional<Throwable> throwable)
+            throws Exception {
+        contextInUse = null;
+        if (caughtFailure != null) {
+            fireEvent(l -> l.scenarioFailed(context, getScenarioTitle(testInstance, method), method, caughtFailure));
+            Throwable th = caughtFailure;
+            caughtFailure = null;
 
-        return null;
+            if (catchCompleteOutput) {
+                throw handleError(th);
+            }
+
+        } else {
+            fireEvent(l -> l.scenarioSucceed(context, getScenarioTitle(testInstance, method), method));
+        }
     }
 
     @SuppressWarnings("unchecked")
-    private <E extends Throwable> void handleCheckedExceptions(Throwable th) throws E {
+    private <E extends Exception> E handleError(Throwable th) throws E {
         if (th instanceof Error) {
             throw (Error) th;
         } else if (th instanceof RuntimeException) {
@@ -121,16 +130,8 @@ public class GherkinRunner {
         }
     }
 
-    public void endMethod(Object testInstance, Method method, Optional<Throwable> throwable) throws Exception {
-        if (throwable.isPresent()) {
-            fireEvent(l -> l.scenarioFailed(getScenarioTitle(testInstance, method), method, throwable.get()));
-        } else {
-            fireEvent(l -> l.scenarioSucceed(getScenarioTitle(testInstance, method), method));
-        }
-    }
-
-    public void endClass(Class<?> storyClass) {
-        fireEvent(l -> l.storyFinished(storyClass));
+    public void endClass(ExtensionContext context, Class<?> storyClass) {
+        fireEvent(l -> l.storyFinished(context, storyClass));
         fireEvent(l -> {
             if (l instanceof GherkinFileListener) {
                 ((GherkinFileListener) l).toFile(baseDir);
@@ -151,7 +152,7 @@ public class GherkinRunner {
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected void runAction(ExecutableWithExceptionAndTable<?> action, Table table, EventuallyConfiguration eventually)
             throws Throwable {
         Throwable throwableFromStep = null;
@@ -184,9 +185,9 @@ public class GherkinRunner {
 
     public static class DefaultRunnerFactory implements RunnerFactory {
         @Override
-        public GherkinRunner createRunner(ExtensionContext context, Set<GherkinListener> listeners,
-                ErrorHandler errorHandler, String baseDir) {
-            return new GherkinRunner(listeners, errorHandler, baseDir);
+        public GherkinRunner createRunner(ExtensionContext context, boolean catchCompleteOutput,
+                Set<GherkinListener> listeners, String baseDir) {
+            return new GherkinRunner(catchCompleteOutput, listeners, baseDir);
         }
     }
 }

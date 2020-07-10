@@ -1,11 +1,11 @@
 /*
- * Copyright © 2018 Michael Bulla (michaelbulla@gmail.com)
+ * Copyright [2018] [Michael Bulla, michaelbulla@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,36 +15,32 @@
  */
 package org.popper.gherkin;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
 import java.util.Random;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.popper.gherkin.customizer.ErrorStore;
 
 @Narrative(inOrderTo = "write gherkin like tests", asA = "Test developer", iWantTo = "use InlineGherkin")
-@ExtendWith(GherkinExtension.class)
-public class GherkinTest {
+@GherkinConfiguration(catchCompleteOutput = true)
+public class GherkinTest implements GherkinMixin {
     @Test
     @Scenario("Some succeeding scenario")
     @DisplayName("Some succeeding scenario")
-    public void succeedingScenario(Gherkin $) {
-        $.Given("Some given condition", () -> {
+    public void succeedingScenario() {
+        Given("Some given condition", () -> {
 
         });
 
-        $.When("Some when condition", () -> {
+        When("Some when condition", () -> {
 
         });
 
-        $.Then("Some assertion succeeds", () -> {
+        Then("Some assertion succeeds", () -> {
 
         });
     }
@@ -53,16 +49,16 @@ public class GherkinTest {
     @Disabled
     @Scenario("Some failing scenario")
     @DisplayName("Some failing scenario")
-    public void failingScenario(Gherkin $) {
-        $.Given("Some given condition", () -> {
+    public void failingScenario() {
+        Given("Some given condition", () -> {
 
         });
 
-        $.When("Some when condition", () -> {
+        When("Some when condition", () -> {
             throw new Exception("TestException");
         });
 
-        $.Then("Some assertion fails", () -> {
+        Then("Some assertion fails", () -> {
 
         });
     }
@@ -70,12 +66,12 @@ public class GherkinTest {
     @Test
     @Scenario("Some scenario containing table")
     @DisplayName("Some scenario containing table")
-    public void scenarioContainingTable(Gherkin $) {
-        $.Given("Some given condition", () -> {
+    public void scenarioContainingTable() {
+        Given("Some given condition", () -> {
 
         });
 
-        $.When("You may use a table to create structured data:" + "|Header1|Header2|Header3|"
+        When("You may use a table to create structured data:" + "|Header1|Header2|Header3|"
                 + "|value1 |value2 |value3 |", (table) -> {
 
                     assertEquals("value1", table.getRow(0).get("Header1"));
@@ -83,10 +79,9 @@ public class GherkinTest {
                     assertEquals("value3", table.getRow(0).get("Header3"));
                 });
 
-        $.Then("You may use a tables to fill pojos:"//
-                + "| SomeInt | SomeBoolean | SomeString |"//
-                + "|  1      | true        | someString |"//
-                + "|  7      | false       |            |", $.mapTo(MyPojo.class), (table) -> {
+        Then("You may use a tables to fill pojos:" + "| SomeInt | SomeBoolean | SomeString |"
+                + "|  1      | true        | someString |" + "|  7      | false       |            |",
+                mapTo(MyPojo.class), (table) -> {
                     assertEquals(1, table.getRow(0).getSomeInt());
                     assertEquals(true, table.getRow(0).isSomeBoolean());
                     assertEquals("someString", table.getRow(0).getSomeString());
@@ -96,10 +91,10 @@ public class GherkinTest {
                     assertEquals("", table.getRow(1).getSomeString());
                 });
 
-        $.Then("You may use name overrides to decouple Headers from Pojo field names:"
+        Then("You may use name overrides to decouple Headers from Pojo field names:"
                 + "| my business int expression | my business boolean expression | my business string expression |"
                 + "| 23                         | true                           | for your interest             |",
-                $.mapTo(MyPojo.class).mapHeader("my business int expression", "someInt")
+                mapTo(MyPojo.class).mapHeader("my business int expression", "someInt")
                         .mapHeader("my business boolean expression", "someBoolean")
                         .mapHeader("my business string expression", "someString"),
                 (table) -> {
@@ -112,42 +107,18 @@ public class GherkinTest {
     }
 
     @Test
-    @Scenario("Pojos for usage with tables don't need a default constructor")
-    @DisplayName("Pojos for usage with tables don't need a default constructor")
-    public void scenarioUsingPojoWithoutDefaultConstructor(Gherkin $) {
-        $.Given("Some given condition", () -> {
-
-        });
-
-        $.When("You may use a tables to fill pojos:"//
-                + "| SomeInt | SomeBoolean |"//
-                + "|  1      | true        |"//
-                + "|  7      | false       |",
-                $.mapTo(MyPojoWithConstructorArg.class).withPojoFactory(
-                        (type, map) -> new MyPojoWithConstructorArg(Integer.parseInt(map.get("SomeInt")),
-                                Boolean.parseBoolean(map.get("SomeBoolean")))),
-                (table) -> {
-                    assertEquals(1, table.getRow(0).getSomeInt());
-                    assertEquals(true, table.getRow(0).isSomeBoolean());
-
-                    assertEquals(7, table.getRow(1).getSomeInt());
-                    assertEquals(false, table.getRow(1).isSomeBoolean());
-                });
-    }
-
-    @Test
     @Scenario("Some scenario with local reference")
     @DisplayName("Some scenario with local reference")
-    public void scenarioUsingLocalReference(Gherkin $, LocalReference<String> stringHolder) {
-        $.Given("A string 'Hello' exists", () -> {
+    public void scenarioUsingLocalReference(LocalReference<String> stringHolder) {
+        Given("A string 'Hello' exists", () -> {
             stringHolder.value = "Hello";
         });
 
-        $.When("That string is extended by ', world'", () -> {
+        When("That string is extended by ', world'", () -> {
             stringHolder.value += ", world";
         });
 
-        $.Then("The reuslt is 'Hello, world'", () -> {
+        Then("The reuslt is 'Hello, world'", () -> {
             assertEquals("Hello, world", stringHolder.value);
         });
     }
@@ -155,57 +126,28 @@ public class GherkinTest {
     @Test
     @Scenario("Some scenario with eventually clause")
     @DisplayName("Some scenario with eventually clause")
-    public void scenarioWithEventuellyClause(Gherkin $, LocalReference<Integer> waitTime,
-            LocalReference<Long> startTime) {
-        $.Given("Some actions execution time takes a long time", () -> {
+    public void scenarioWithEventuellyClause(LocalReference<Integer> waitTime, LocalReference<Long> startTime) {
+        Given("Some actions execution time takes a long time", () -> {
             waitTime.value = new Random().nextInt(1000) + 2000;
         });
 
-        $.When("That action is triggered", () -> {
+        When("That action is triggered", () -> {
             startTime.value = System.currentTimeMillis();
         });
 
-        $.Then("Eventually clause will take care to wait for the result", () -> {
+        Then("Eventually clause will take care to wait for the result", () -> {
             assertTrue(System.currentTimeMillis() > (startTime.value + waitTime.value));
-        }, $.eventually());
+        }, eventually());
     }
 
     @Test
     @Scenario("Eventually clause may also fail")
     @DisplayName("Eventually clause may also fail")
     @Disabled
-    public void scenarioWithEventuellyClauseFails(Gherkin $) {
-        $.Then("Eventually clause will take care to wait for the result", () -> {
+    public void scenarioWithEventuellyClauseFails() {
+        Then("Eventually clause will take care to wait for the result", () -> {
             fail("test error");
-        }, $.eventually());
-    }
-
-    @Test
-    @Scenario("Native support for checks of exception throwing")
-    @DisplayName("Native support for checks of exception throwing")
-    public void scenarioWithAnExpectedException(Gherkin $, ErrorStore errorStore) {
-        $.When("One step throws an exception", () -> {
-            throw new RuntimeException("expected exception");
-        }, errorStore);
-
-        $.Then("That exception may be evaluated in a following step", () -> {
-            assertNotNull(errorStore.getLastCaughtThrowable());
-            assertTrue(errorStore.getLastCaughtThrowable() instanceof RuntimeException);
-        });
-    }
-
-    @Test
-    @Scenario("Allows throwing of checked exceptions inside step")
-    @DisplayName("Allows throwing of checked exceptions inside step")
-    public void throwCheckedException(Gherkin $, ErrorStore errorStore) {
-        $.When("A checked exception is thrown", () -> {
-            throw new IOException("expected checked exception");
-        }, errorStore);
-
-        $.Then("That exception is handled correctly and may be evaluated in a following step", () -> {
-            assertNotNull(errorStore.getLastCaughtThrowable());
-            assertTrue(errorStore.getLastCaughtThrowable() instanceof IOException);
-        });
+        }, eventually());
     }
 
     @SuppressWarnings("unused")
@@ -236,25 +178,6 @@ public class GherkinTest {
 
         public void setSomeString(String someString) {
             this.someString = someString;
-        }
-    }
-
-    private static class MyPojoWithConstructorArg {
-        private final int someInt;
-        private final boolean someBoolean;
-
-        public MyPojoWithConstructorArg(int someInt, boolean someBoolean) {
-            super();
-            this.someInt = someInt;
-            this.someBoolean = someBoolean;
-        }
-
-        public int getSomeInt() {
-            return someInt;
-        }
-
-        public boolean isSomeBoolean() {
-            return someBoolean;
         }
     }
 }

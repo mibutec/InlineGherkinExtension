@@ -1,11 +1,11 @@
 /*
- * Copyright © 2018 Michael Bulla (michaelbulla@gmail.com)
+ * Copyright [2018] [Michael Bulla, michaelbulla@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,7 @@
  */
 package org.popper.gherkin.table;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,28 +23,32 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * Implementation of {@link PojoMapper} mapping each entry from map to a setter
- * method or field of a given target class
+ * Implementation of {@link PojoMapper} mapping each entry from map to a setter method or field of a given target class
  *
  * @author Michael
  */
 public class DefaultPojoMapper<T> implements PojoMapper<T> {
 
     @Override
-    public T mapToPojo(Map<String, String> map, T target) {
+    public T mapToPojo(Map<String, String> map, Class<T> targetType) {
         try {
+            Constructor<T> constructor = targetType.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            T ret = constructor.newInstance();
+
             for (Entry<String, String> entry : map.entrySet()) {
-                if (!setFieldBySetter(target, entry.getKey(), entry.getValue())) {
-                    if (!setField(target, entry.getKey(), entry.getValue())) {
+                if (!setFieldBySetter(ret, entry.getKey(), entry.getValue())) {
+                    if (!setField(ret, entry.getKey(), entry.getValue())) {
                         throw new IllegalStateException("couldn't find any field or setter named " + entry.getKey()
-                                + " in " + target.getClass().getSimpleName());
+                                + " in " + targetType.getSimpleName());
                     }
                 }
             }
 
-            return target;
-        } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            throw new IllegalStateException("could not map " + map + " to " + target.getClass().getSimpleName(), e);
+            return ret;
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                | IllegalArgumentException | InvocationTargetException e) {
+            throw new IllegalStateException("could not map " + map + " to " + targetType.getSimpleName(), e);
         }
     }
 
@@ -80,7 +85,7 @@ public class DefaultPojoMapper<T> implements PojoMapper<T> {
         return false;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected Object stringToType(String str, Class<?> targetType) {
         if (str == null) {
             return null;

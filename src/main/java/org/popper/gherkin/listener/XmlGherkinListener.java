@@ -1,11 +1,11 @@
 /*
- * Copyright © 2018 Michael Bulla (michaelbulla@gmail.com)
+ * Copyright [2018] [Michael Bulla, michaelbulla@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,6 +32,7 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.popper.gherkin.Narrative;
 import org.popper.gherkin.table.Table;
 import org.w3c.dom.Document;
@@ -49,10 +50,10 @@ public class XmlGherkinListener implements GherkinFileListener {
 
     private Element actualStory;
 
-    private ThreadLocal<Element> actualScenarios = new ThreadLocal<>();
+    private Element actualScenario;
 
     @Override
-    public void storyStarted(Class<?> storyClass) {
+    public void storyStarted(ExtensionContext context, Class<?> storyClass) {
         try {
             doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 
@@ -67,7 +68,7 @@ public class XmlGherkinListener implements GherkinFileListener {
     }
 
     @Override
-    public void narrative(Narrative narrative) {
+    public void narrative(ExtensionContext context, Narrative narrative) {
         Element inOrder = doc.createElement("inOrderTo");
         inOrder.setTextContent(narrative.inOrderTo());
         actualStory.appendChild(inOrder);
@@ -82,48 +83,50 @@ public class XmlGherkinListener implements GherkinFileListener {
     }
 
     @Override
-    public void scenarioStarted(String scenarioTitle, Method method) {
-        Element actualScenario = doc.createElement("scenario");
+    public void scenarioStarted(ExtensionContext context, String scenarioTitle, Method method) {
+        actualScenario = doc.createElement("scenario");
         actualScenario.setAttribute("title", scenarioTitle);
-        actualScenarios.set(actualScenario);
+        actualStory.appendChild(actualScenario);
     }
 
     @Override
-    public void stepExecutionFailed(String type, String stepName, Optional<Table<Map<String, String>>> table,
-            Throwable throwable) {
+    public void stepExecutionFailed(ExtensionContext context, String type, String stepName,
+            Optional<Table<Map<String, String>>> table, Throwable throwable) {
         Element step = createStep(type, stepName, table, "failed");
 
         Element failure = doc.createElement("failure");
         failure.setTextContent(throwableToString(throwable));
         step.appendChild(failure);
 
-        actualScenarios.get().appendChild(step);
+        actualScenario.appendChild(step);
     }
 
     @Override
-    public void stepExecutionSucceed(String type, String stepName, Optional<Table<Map<String, String>>> table) {
-        actualScenarios.get().appendChild(createStep(type, stepName, table, "success"));
+    public void stepExecutionSucceed(ExtensionContext context, String type, String stepName,
+            Optional<Table<Map<String, String>>> table) {
+        actualScenario.appendChild(createStep(type, stepName, table, "success"));
     }
 
     @Override
-    public void stepExecutionSkipped(String type, String stepName, Optional<Table<Map<String, String>>> table) {
-        actualScenarios.get().appendChild(createStep(type, stepName, table, "skipped"));
+    public void stepExecutionSkipped(ExtensionContext context, String type, String stepName,
+            Optional<Table<Map<String, String>>> table) {
+        actualScenario.appendChild(createStep(type, stepName, table, "skipped"));
     }
 
     @Override
-    public void scenarioFailed(String scenarioTitle, Method method, Throwable throwable) {
+    public void scenarioFailed(ExtensionContext context, String scenarioTitle, Method method, Throwable throwable) {
         Element failure = doc.createElement("failure");
         failure.setTextContent(throwableToString(throwable));
-        actualScenarios.get().appendChild(failure);
+        actualScenario.appendChild(failure);
 
-        actualStory.appendChild(actualScenarios.get());
-        actualScenarios.remove();
+        actualStory.appendChild(actualScenario);
+        actualScenario = null;
     }
 
     @Override
-    public void scenarioSucceed(String scenarioTitle, Method method) {
-        actualStory.appendChild(actualScenarios.get());
-        actualScenarios.remove();
+    public void scenarioSucceed(ExtensionContext context, String scenarioTitle, Method method) {
+        actualStory.appendChild(actualScenario);
+        actualScenario = null;
     }
 
     @Override

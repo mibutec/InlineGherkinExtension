@@ -1,11 +1,11 @@
 /*
- * Copyright © 2018 Michael Bulla (michaelbulla@gmail.com)
+ * Copyright [2018] [Michael Bulla, michaelbulla@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,11 +31,8 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
-import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.popper.gherkin.GherkinRunner.DefaultRunnerFactory;
-import org.popper.gherkin.customizer.DefaultErrorHandler;
-import org.popper.gherkin.customizer.ErrorStore;
 import org.popper.gherkin.listener.GherkinListener;
 import org.popper.gherkin.listener.XmlGherkinListener;
 
@@ -45,68 +42,42 @@ import org.popper.gherkin.listener.XmlGherkinListener;
  * @author Michael
  *
  */
-public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, BeforeAllCallback, AfterAllCallback,
-        ParameterResolver, TestInstancePostProcessor {
+public class GherkinExtension
+        implements BeforeEachCallback, AfterEachCallback, BeforeAllCallback, AfterAllCallback, ParameterResolver {
     private static final Map<Class<?>, GherkinRunner> activeRunners = new ConcurrentHashMap<>();
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
-        try {
-            getOrCreateRunner(context).startClass(context);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        getOrCreateRunner(context).startClass(context);
     }
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        try {
-            getOrCreateRunner(context).startMethod(context.getRequiredTestInstance(), context.getRequiredTestMethod());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        getOrCreateRunner(context).startMethod(context, context.getRequiredTestInstance(),
+                context.getRequiredTestMethod());
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        getOrCreateRunner(context).endMethod(context.getRequiredTestInstance(), context.getRequiredTestMethod(),
-                context.getExecutionException());
+        getOrCreateRunner(context).endMethod(context, context.getRequiredTestInstance(),
+                context.getRequiredTestMethod(), context.getExecutionException());
     }
 
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
-        getOrCreateRunner(context).endClass(context.getRequiredTestClass());
+        getOrCreateRunner(context).endClass(context, context.getRequiredTestClass());
     }
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
-        Class<?> expectedType = parameterContext.getParameter().getType();
-        return expectedType.equals(LocalReference.class) || expectedType.equals(Gherkin.class)
-                || expectedType.equals(ErrorStore.class);
+        return parameterContext.getParameter().getType().equals(LocalReference.class);
     }
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
             throws ParameterResolutionException {
-        Class<?> expectedType = parameterContext.getParameter().getType();
-
-        if (expectedType.equals(LocalReference.class)) {
-            return new LocalReference<>();
-        } else if (expectedType.equals(ErrorStore.class)) {
-            return new ErrorStore();
-        } else {
-            GherkinImpl impl = new GherkinImpl();
-            impl.setRunner(getOrCreateRunner(extensionContext));
-            return impl;
-        }
-    }
-
-    @Override
-    public void postProcessTestInstance(Object testInstance, ExtensionContext context) throws Exception {
-        if (testInstance instanceof GherkinRunnerHolder) {
-            ((GherkinRunnerHolder) testInstance).setRunner(getOrCreateRunner(context));
-        }
+        return new LocalReference<>();
     }
 
     synchronized GherkinRunner getOrCreateRunner(ExtensionContext context) {
@@ -115,8 +86,8 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
         if (runner == null) {
             GherkinConfiguration configAnnotation = AnnotationUtils
                     .findAnnotation(testClass, GherkinConfiguration.class).orElse(null);
-            runner = runnerFactory(configAnnotation).createRunner(context, listeners(configAnnotation),
-                    new DefaultErrorHandler(), baseDir(configAnnotation));
+            runner = runnerFactory(configAnnotation).createRunner(context, catchCompleteOutput(configAnnotation),
+                    listeners(configAnnotation), baseDir(configAnnotation));
             activeRunners.put(testClass, runner);
         }
 
@@ -130,6 +101,16 @@ public class GherkinExtension implements BeforeEachCallback, AfterEachCallback, 
             return configAnnotation.baseDir();
         } else {
             return "./target/gherkin";
+        }
+    }
+
+    private boolean catchCompleteOutput(GherkinConfiguration configAnnotation) {
+        if (System.getProperty("gherkin.catchCompleteOutput") != null) {
+            return Boolean.valueOf(System.getProperty("gherkin.catchCompleteOutput"));
+        } else if (configAnnotation != null) {
+            return configAnnotation.catchCompleteOutput();
+        } else {
+            return false;
         }
     }
 
