@@ -19,7 +19,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.popper.gherkin.GherkinRunner;
 import org.popper.gherkin.Narrative;
 import org.popper.gherkin.table.Table;
@@ -31,10 +30,6 @@ import org.popper.gherkin.table.Table;
  *
  */
 public interface GherkinListener {
-    default void init(ExtensionContext context) {
-
-    }
-
     default void storyStarted(Class<?> storyClass) {
 
     }
