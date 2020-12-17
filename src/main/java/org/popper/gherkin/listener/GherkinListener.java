@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.popper.gherkin.GherkinRunner;
 import org.popper.gherkin.Narrative;
 import org.popper.gherkin.table.Table;
@@ -30,44 +31,47 @@ import org.popper.gherkin.table.Table;
  *
  */
 public interface GherkinListener {
-    default void storyStarted(Class<?> storyClass) {
+    default void storyStarted(ExtensionContext context, Class<?> storyClass) {
 
     }
 
-    default void narrative(Narrative narrative) {
+    default void narrative(ExtensionContext context, Narrative narrative) {
 
     }
 
-    default void scenarioStarted(String scenarioTitle, Method method) {
+    default void scenarioStarted(ExtensionContext context, String scenarioTitle, Method method) {
 
     }
 
-    default void stepExecutionStarts(String type, String step, Optional<Table<Map<String, String>>> table) {
+    default void stepExecutionStarts(ExtensionContext context, String type, String step,
+            Optional<Table<Map<String, String>>> table) {
 
     }
 
-    default void stepExecutionFailed(String type, String step, Optional<Table<Map<String, String>>> table,
-            Throwable throwable) {
+    default void stepExecutionFailed(ExtensionContext context, String type, String step,
+            Optional<Table<Map<String, String>>> table, Throwable throwable) {
 
     }
 
-    default void stepExecutionSucceed(String type, String step, Optional<Table<Map<String, String>>> table) {
+    default void stepExecutionSucceed(ExtensionContext context, String type, String step,
+            Optional<Table<Map<String, String>>> table) {
 
     }
 
-    default void stepExecutionSkipped(String type, String step, Optional<Table<Map<String, String>>> table) {
+    default void stepExecutionSkipped(ExtensionContext context, String type, String step,
+            Optional<Table<Map<String, String>>> table) {
 
     }
 
-    default void scenarioFailed(String scenarioTitle, Method method, Throwable throwable) {
+    default void scenarioFailed(ExtensionContext context, String scenarioTitle, Method method, Throwable throwable) {
 
     }
 
-    default void scenarioSucceed(String scenarioTitle, Method method) {
+    default void scenarioSucceed(ExtensionContext context, String scenarioTitle, Method method) {
 
     }
 
-    default void storyFinished(Class<?> storyClass) {
+    default void storyFinished(ExtensionContext context, Class<?> storyClass) {
 
     }
 }
