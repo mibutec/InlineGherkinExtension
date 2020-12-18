@@ -53,14 +53,12 @@ public class GherkinExtension
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        getOrCreateRunner(context).startMethod(context, context.getRequiredTestInstance(),
-                context.getRequiredTestMethod());
+        getOrCreateRunner(context).startMethod(context);
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        getOrCreateRunner(context).endMethod(context, context.getRequiredTestInstance(),
-                context.getRequiredTestMethod(), context.getExecutionException());
+        getOrCreateRunner(context).endMethod(context);
     }
 
     @Override

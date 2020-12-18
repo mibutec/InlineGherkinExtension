@@ -61,9 +61,11 @@ public class GherkinRunner {
         }
     }
 
-    public void startMethod(ExtensionContext context, Object testInstance, Method method) {
+    public void startMethod(ExtensionContext context) {
         assert methodContextInUse == null;
         methodContextInUse = context;
+        Object testInstance = context.getRequiredTestInstance();
+        Method method = context.getRequiredTestMethod();
         fireEvent(l -> l.scenarioStarted(context, getScenarioTitle(testInstance, method), method));
     }
 
@@ -101,9 +103,11 @@ public class GherkinRunner {
         }
     }
 
-    public void endMethod(ExtensionContext context, Object testInstance, Method method, Optional<Throwable> throwable)
-            throws Exception {
+    public void endMethod(ExtensionContext context) throws Exception {
         assert methodContextInUse == context;
+
+        Object testInstance = context.getRequiredTestInstance();
+        Method method = context.getRequiredTestMethod();
         if (caughtFailure != null) {
             fireEvent(l -> l.scenarioFailed(context, getScenarioTitle(testInstance, method), method, caughtFailure));
             Throwable th = caughtFailure;
