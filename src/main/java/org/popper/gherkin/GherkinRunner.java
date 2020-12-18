@@ -44,6 +44,8 @@ public class GherkinRunner {
 
     private Throwable caughtFailure = null;
 
+    private ExtensionContext methodContextInUse;
+
     public GherkinRunner(boolean catchCompleteOutput, Set<GherkinListener> listeners, String baseDir) {
         this.listeners = listeners;
         this.catchCompleteOutput = catchCompleteOutput;
@@ -52,21 +54,29 @@ public class GherkinRunner {
     }
 
     public void startClass(ExtensionContext context) {
-        fireEvent(l -> l.storyStarted(context.getRequiredTestClass()));
+        fireEvent(l -> l.storyStarted(context, context.getRequiredTestClass()));
         Narrative narrative = context.getRequiredTestClass().getAnnotation(Narrative.class);
         if (narrative != null) {
-            listeners.forEach(l -> l.narrative(narrative));
+            listeners.forEach(l -> l.narrative(context, narrative));
         }
     }
 
-    public void startMethod(Object testInstance, Method method) {
-        fireEvent(l -> l.scenarioStarted(getScenarioTitle(testInstance, method), method));
+    public void startMethod(ExtensionContext context) {
+        assert methodContextInUse == null;
+        methodContextInUse = context;
+        Object testInstance = context.getRequiredTestInstance();
+        Method method = context.getRequiredTestMethod();
+        fireEvent(l -> l.scenarioStarted(context, getScenarioTitle(testInstance, method), method));
     }
 
     public void executeAction(String type, String step, ExecutableWithExceptionAndTable<?> action,
             TableMapper<?> tableMapper, EventuallyConfiguration eventuall) {
+
+        assert methodContextInUse != null;
+
         Optional<Table<Map<String, String>>> table;
         String stepWithoutTable;
+
         if (tableMapper != null) {
             table = Optional.ofNullable(tableMapper.createMapTable(step));
             stepWithoutTable = tableMapper.removeTable(step);
@@ -76,15 +86,15 @@ public class GherkinRunner {
         }
 
         if (caughtFailure != null) {
-            fireEvent(l -> l.stepExecutionSkipped(type, stepWithoutTable, table));
+            fireEvent(l -> l.stepExecutionSkipped(methodContextInUse, type, stepWithoutTable, table));
         } else {
-            fireEvent(l -> l.stepExecutionStarts(type, stepWithoutTable, table));
+            fireEvent(l -> l.stepExecutionStarts(methodContextInUse, type, stepWithoutTable, table));
             try {
                 Table<?> convertedTable = tableMapper != null ? tableMapper.createTable(step) : null;
                 runAction(action, convertedTable, eventuall);
-                fireEvent(l -> l.stepExecutionSucceed(type, stepWithoutTable, table));
+                fireEvent(l -> l.stepExecutionSucceed(methodContextInUse, type, stepWithoutTable, table));
             } catch (Throwable th) {
-                fireEvent(l -> l.stepExecutionFailed(type, stepWithoutTable, table, th));
+                fireEvent(l -> l.stepExecutionFailed(methodContextInUse, type, stepWithoutTable, table, th));
                 caughtFailure = th;
                 if (!catchCompleteOutput) {
                     throw this.<RuntimeException> handleError(th);
@@ -93,9 +103,13 @@ public class GherkinRunner {
         }
     }
 
-    public void endMethod(Object testInstance, Method method, Optional<Throwable> throwable) throws Exception {
+    public void endMethod(ExtensionContext context) throws Exception {
+        assert methodContextInUse == context;
+
+        Object testInstance = context.getRequiredTestInstance();
+        Method method = context.getRequiredTestMethod();
         if (caughtFailure != null) {
-            fireEvent(l -> l.scenarioFailed(getScenarioTitle(testInstance, method), method, caughtFailure));
+            fireEvent(l -> l.scenarioFailed(context, getScenarioTitle(testInstance, method), method, caughtFailure));
             Throwable th = caughtFailure;
             caughtFailure = null;
 
@@ -104,8 +118,9 @@ public class GherkinRunner {
             }
 
         } else {
-            fireEvent(l -> l.scenarioSucceed(getScenarioTitle(testInstance, method), method));
+            fireEvent(l -> l.scenarioSucceed(context, getScenarioTitle(testInstance, method), method));
         }
+        methodContextInUse = null;
     }
 
     @SuppressWarnings("unchecked")
@@ -119,8 +134,8 @@ public class GherkinRunner {
         }
     }
 
-    public void endClass(Class<?> storyClass) {
-        fireEvent(l -> l.storyFinished(storyClass));
+    public void endClass(ExtensionContext context) {
+        fireEvent(l -> l.storyFinished(context, context.getRequiredTestClass()));
         fireEvent(l -> {
             if (l instanceof GherkinFileListener) {
                 ((GherkinFileListener) l).toFile(baseDir);
