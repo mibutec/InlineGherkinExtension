@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.popperfw</groupId>
 	<artifactId>gherkin</artifactId>
-	<version>0.6-SNAPSHOT</version>
+	<version>0.6-RC1</version>
 
 	<name>Inline Gherkin Extension</name>
 	<description>Inline Gherkin Extension for JUnit 5</description>
