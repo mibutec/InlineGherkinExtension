@@ -105,6 +105,7 @@ public class GherkinRunner {
 
     public void endMethod(ExtensionContext context) throws Exception {
         assert methodContextInUse == context;
+        methodContextInUse = null;
 
         Object testInstance = context.getRequiredTestInstance();
         Method method = context.getRequiredTestMethod();
@@ -120,7 +121,6 @@ public class GherkinRunner {
         } else {
             fireEvent(l -> l.scenarioSucceed(context, getScenarioTitle(testInstance, method), method));
         }
-        methodContextInUse = null;
     }
 
     @SuppressWarnings("unchecked")
