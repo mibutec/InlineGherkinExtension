@@ -42,6 +42,10 @@ public @interface GherkinConfiguration {
 
     Class<? extends GherkinListener>[] listeners() default {XmlGherkinListener.class};
 
+    /**
+     *since version 0.6  no more need to use this property.
+     */
+    @Deprecated
     boolean catchCompleteOutput() default false;
 
     Class<? extends RunnerFactory> runnerFactory() default DefaultRunnerFactory.class;
