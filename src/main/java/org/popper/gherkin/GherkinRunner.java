@@ -40,15 +40,20 @@ public class GherkinRunner {
 
     private final File baseDir;
 
-    private final boolean catchCompleteOutput;
-
-    private Throwable caughtFailure = null;
+    private String lastType = "";
 
     private ExtensionContext methodContextInUse;
 
+    /**
+     * since version 0.6  no more need to use this constructor,use instead GherkinRunner(Set<GherkinListener> listeners, String baseDir)
+     */
+    @Deprecated
     public GherkinRunner(boolean catchCompleteOutput, Set<GherkinListener> listeners, String baseDir) {
+        this(listeners, baseDir);
+    }
+
+    public GherkinRunner(Set<GherkinListener> listeners, String baseDir) {
         this.listeners = listeners;
-        this.catchCompleteOutput = catchCompleteOutput;
         this.baseDir = new File(baseDir);
         this.baseDir.mkdirs();
     }
@@ -62,6 +67,7 @@ public class GherkinRunner {
     }
 
     public void startMethod(ExtensionContext context) {
+        lastType = "";
         assert methodContextInUse == null;
         methodContextInUse = context;
         Object testInstance = context.getRequiredTestInstance();
@@ -85,42 +91,42 @@ public class GherkinRunner {
             stepWithoutTable = step;
         }
 
-        if (caughtFailure != null) {
-            fireEvent(l -> l.stepExecutionSkipped(methodContextInUse, type, stepWithoutTable, table));
+        if (lastType.contains(type)) {
+            fireEvent(l -> l.stepExecutionStarts(methodContextInUse, "And", stepWithoutTable, table));
         } else {
             fireEvent(l -> l.stepExecutionStarts(methodContextInUse, type, stepWithoutTable, table));
-            try {
-                Table<?> convertedTable = tableMapper != null ? tableMapper.createTable(step) : null;
-                runAction(action, convertedTable, eventuall);
-                fireEvent(l -> l.stepExecutionSucceed(methodContextInUse, type, stepWithoutTable, table));
-            } catch (Throwable th) {
-                fireEvent(l -> l.stepExecutionFailed(methodContextInUse, type, stepWithoutTable, table, th));
-                caughtFailure = th;
-                if (!catchCompleteOutput) {
-                    throw this.<RuntimeException> handleError(th);
-                }
-            }
         }
+        try {
+            Table<?> convertedTable = tableMapper != null ? tableMapper.createTable(step) : null;
+            runAction(action, convertedTable, eventuall);
+            if (lastType.contains(type)) {
+                fireEvent(l -> l.stepExecutionSucceed(methodContextInUse, "And", stepWithoutTable, table));
+            } else {
+                fireEvent(l -> l.stepExecutionSucceed(methodContextInUse, type, stepWithoutTable, table));
+            }
+        } catch (Throwable th) {
+            if (lastType.contains(type)) {
+                fireEvent(l -> l.stepExecutionFailed(methodContextInUse, "And", stepWithoutTable, table, th));
+            } else {
+                fireEvent(l -> l.stepExecutionFailed(methodContextInUse, type, stepWithoutTable, table, th));
+            }
+
+            throw this.<RuntimeException> handleError(th);
+
+        }
+
+        lastType = type;
+
     }
 
     public void endMethod(ExtensionContext context) throws Exception {
         assert methodContextInUse == context;
+        methodContextInUse = null;
 
         Object testInstance = context.getRequiredTestInstance();
         Method method = context.getRequiredTestMethod();
-        if (caughtFailure != null) {
-            fireEvent(l -> l.scenarioFailed(context, getScenarioTitle(testInstance, method), method, caughtFailure));
-            Throwable th = caughtFailure;
-            caughtFailure = null;
 
-            if (catchCompleteOutput) {
-                throw handleError(th);
-            }
-
-        } else {
-            fireEvent(l -> l.scenarioSucceed(context, getScenarioTitle(testInstance, method), method));
-        }
-        methodContextInUse = null;
+        fireEvent(l -> l.scenarioSucceed(context, getScenarioTitle(testInstance, method), method));
     }
 
     @SuppressWarnings("unchecked")
